@@ -4,6 +4,7 @@ import SVGChart from '../components/SVGChart';
 
 export const CareerCentre: React.FC = () => {
   const {
+    activeSubpage,
     students,
     jobs,
     applications,
@@ -20,27 +21,24 @@ export const CareerCentre: React.FC = () => {
     verifyPlacement
   } = usePortal();
 
-  // Navigation tabs
-  const [activeTab, setActiveTab] = useState<'admin' | 'compliance' | 'liaison' | 'reports'>('admin');
-
-  // Job rejection form state
+  // Job rejection state
   const [rejectingJobId, setRejectingJobId] = useState<string | null>(null);
   const [rejectReason, setRejectReason] = useState('');
 
-  // Liaison trigger form state
+  // Liaison trigger state
   const [liaisonAppId, setLiaisonAppId] = useState<string | null>(null);
   const [liaisonLanguage, setLiaisonLanguage] = useState('Japanese');
   const [liaisonLecturer, setLiaisonLecturer] = useState('Dr. Lee (Japanese expert)');
 
-  // Compliance fail description state
+  // Compliance failure reason state
   const [failPillar, setFailPillar] = useState<{ appId: string; pillar: string } | null>(null);
   const [failReason, setFailReason] = useState('');
 
-  // AI Summary state
+  // AI Feedbacks summary analysis
   const [aiSummary, setAiSummary] = useState<string | null>(null);
   const [aiLoading, setAiLoading] = useState(false);
 
-  // Placements count
+  // Placements clearance metric calculations
   const approvedPlacements = applications.filter(a => a.status === 'Approved').length;
   const activePostings = jobs.filter(j => j.isApproved).length;
   const pendingJobs = jobs.filter(j => !j.isApproved && !j.rejectionReason);
@@ -72,7 +70,7 @@ export const CareerCentre: React.FC = () => {
     setAiLoading(true);
     setTimeout(() => {
       setAiSummary(
-        `[AI-Generated Placement Performance Feedback Summaries (PB-15, PB-16)]\n` +
+        `[AI-Generated Placement Performance Feedback Summaries]\n` +
         `• Common Strengths: Students showed high aptitude in React core concepts, local state setups, and Git code management.\n` +
         `• Common Weaknesses: Adaptation to enterprise backend structures (Node.js API servers) took longer than expected (average 5 days delay).\n` +
         `• Recommendation: Faculty to introduce lightweight TypeScript API projects in Sem 4 to bridge corporate entry benchmarks.`
@@ -85,65 +83,73 @@ export const CareerCentre: React.FC = () => {
   const placementData = [
     { label: 'Software Eng', value: 3 },
     { label: 'Data Science', value: 2 },
-    { label: 'UI/UX Design', value: 1 },
-    { label: 'Cybersecurity', value: 1 }
+    { label: 'UI/UX Design', value: 1 }
   ];
 
   const outcomesData = [
-    { label: 'Accepted Placements', value: approvedPlacements || 2 },
+    { label: 'Approved Placements', value: approvedPlacements || 2 },
     { label: 'Rejected Applications', value: applications.filter(a => a.status === 'Rejected').length || 1 },
-    { label: 'Pending Clearances', value: applications.filter(a => a.status === 'Awaiting Offer Verification').length || 0 }
+    { label: 'Awaiting Clearances', value: applications.filter(a => a.status === 'Awaiting Offer Verification').length || 0 }
   ];
 
   return (
     <div className="slide-up">
-      {/* Top Header Metrics Bar */}
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '16px', marginBottom: '24px' }}>
-        {[
-          { label: 'Placements Approved', value: approvedPlacements, icon: '🎓' },
-          { label: 'Active Job Postings', value: activePostings, icon: '💼' },
-          { label: 'Pending Posting Approvals', value: pendingJobs.length, icon: '⏳' },
-          { label: 'Applications Submitted', value: applications.length, icon: '📄' }
-        ].map(metric => (
-          <div key={metric.label} className="dashboard-card" style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: 0, padding: '16px 20px' }}>
-            <span style={{ fontSize: '32px' }}>{metric.icon}</span>
-            <div>
-              <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>{metric.label}</span>
-              <strong style={{ fontSize: '24px', fontFamily: 'var(--font-display)', color: 'var(--color-primary)' }}>{metric.value}</strong>
+      {/* 1. CC DASHBOARD SUBPAGE */}
+      {activeSubpage === 'dashboard' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+          
+          {/* Top Header Metrics Bar */}
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
+            <div className="dashboard-card" style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: 0, padding: '16px 20px' }}>
+              <span style={{ fontSize: '32px' }}>🎓</span>
+              <div>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Placements Approved</span>
+                <strong style={{ fontSize: '24px', color: 'var(--color-primary)' }}>{approvedPlacements}</strong>
+              </div>
+            </div>
+            <div className="dashboard-card" style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: 0, padding: '16px 20px' }}>
+              <span style={{ fontSize: '32px' }}>💼</span>
+              <div>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Active Job Postings</span>
+                <strong style={{ fontSize: '24px', color: 'var(--color-primary)' }}>{activePostings}</strong>
+              </div>
+            </div>
+            <div className="dashboard-card" style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: 0, padding: '16px 20px' }}>
+              <span style={{ fontSize: '32px' }}>⏳</span>
+              <div>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Pending Job Approvals</span>
+                <strong style={{ fontSize: '24px', color: 'var(--color-primary)' }}>{pendingJobs.length}</strong>
+              </div>
+            </div>
+            <div className="dashboard-card" style={{ display: 'flex', alignItems: 'center', gap: '16px', margin: 0, padding: '16px 20px' }}>
+              <span style={{ fontSize: '32px' }}>📄</span>
+              <div>
+                <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', textTransform: 'uppercase', fontWeight: 600 }}>Total Applications</span>
+                <strong style={{ fontSize: '24px', color: 'var(--color-primary)' }}>{applications.length}</strong>
+              </div>
             </div>
           </div>
-        ))}
-      </div>
 
-      {/* Tabs */}
-      <div style={{ display: 'flex', gap: '8px', borderBottom: '1px solid var(--color-border)', marginBottom: '24px', overflowX: 'auto', paddingBottom: '4px' }}>
-        {[
-          { id: 'admin', label: '🛡️ Admin Approvals' },
-          { id: 'compliance', label: '📋 Compliance Checklist Matrix' },
-          { id: 'liaison', label: '🌐 Language Liaison Flags' },
-          { id: 'reports', label: '📈 Reports & AI Analytics' }
-        ].map(tab => (
-          <button
-            key={tab.id}
-            onClick={() => setActiveTab(tab.id as any)}
-            className={`btn ${activeTab === tab.id ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ borderRadius: '20px', padding: '8px 16px', fontSize: '13px', whiteSpace: 'nowrap' }}
-          >
-            {tab.label}
-          </button>
-        ))}
-      </div>
+          {/* Governance Stats Overview */}
+          <div className="dashboard-card" style={{ margin: 0 }}>
+            <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>System Portal Audit Trails (System Log Monitoring)</h3>
+            <div style={{ maxHeight: '250px', overflowY: 'auto', border: '1px solid var(--color-border)', borderRadius: '6px', backgroundColor: '#f8fafc', padding: '12px', fontSize: '11px', fontFamily: 'monospace' }}>
+              {systemLogs.map(log => (
+                <div key={log.id} style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '6px' }}>
+                  <span style={{ color: 'var(--color-primary)' }}>[{log.timestamp}]</span> <strong>{log.user}:</strong> {log.action}
+                </div>
+              ))}
+            </div>
+          </div>
 
-      {/* TABS VIEWPORT */}
-      {activeTab === 'admin' && (
+        </div>
+      )}
+
+      {/* 2. JOB APPROVALS SUBPAGE */}
+      {activeSubpage === 'approvals' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '24px', alignItems: 'start' }}>
-          {/* Postings Approval Gatekeeper (PB-05, PB-06) */}
           <div className="dashboard-card" style={{ margin: 0 }}>
             <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Pending Job Postings Review</h3>
-            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
-              Verify postings align with academic criteria. Block postings violating guidelines (non-CS tasks, cheap labor, commission-only).
-            </p>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               {pendingJobs.map(job => (
                 <div key={job.id} style={{ border: '1px solid var(--color-border)', padding: '16px', borderRadius: '8px', backgroundColor: '#fff' }}>
@@ -153,91 +159,66 @@ export const CareerCentre: React.FC = () => {
                   </div>
                   <p style={{ fontSize: '13px', color: 'var(--color-primary)', fontWeight: 600 }}>{job.companyName}</p>
                   <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '8px 0' }}>{job.scope}</p>
-                  
-                  <div style={{ display: 'flex', gap: '6px', flexWrap: 'wrap', marginBottom: '16px' }}>
-                    {job.requiredSkills.map(s => <span key={s} className="badge badge-applied" style={{ fontSize: '10px' }}>{s}</span>)}
-                  </div>
-
                   <div style={{ display: 'flex', gap: '8px' }}>
-                    <button className="btn btn-primary" style={{ flex: 1, padding: '6px 0', fontSize: '12px' }} onClick={() => approveJob(job.id)}>
-                      Approve & Publish
-                    </button>
-                    <button className="btn btn-danger" style={{ flex: 1, padding: '6px 0', fontSize: '12px' }} onClick={() => setRejectingJobId(job.id)}>
-                      Reject
-                    </button>
+                    <button className="btn btn-primary" style={{ flex: 1, padding: '6px 0', fontSize: '12px' }} onClick={() => approveJob(job.id)}>Approve</button>
+                    <button className="btn btn-danger" style={{ flex: 1, padding: '6px 0', fontSize: '12px' }} onClick={() => setRejectingJobId(job.id)}>Reject</button>
                   </div>
                 </div>
               ))}
-
-              {pendingJobs.length === 0 && (
-                <p style={{ fontStyle: 'italic', color: 'var(--color-text-muted)', textAlign: 'center', padding: '24px 0' }}>
-                  No pending job approvals.
-                </p>
-              )}
-            </div>
-          </div>
-
-          {/* Employer verification */}
-          <div className="dashboard-card" style={{ margin: 0 }}>
-            <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Employer Profile Verification Hub</h3>
-            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
-              Verify credibility profiles of industry recruiters. Unverified profiles cannot publish jobs.
-            </p>
-
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-              {[
-                { id: 'c_arvato', name: 'Arvato Systems', verified: employerVerifications['c_arvato'] },
-                { id: 'c_techcorp', name: 'TechCorp Solutions', verified: employerVerifications['c_techcorp'] },
-                { id: 'c_spam', name: 'Spam Inc (Flagged Cheap Labor)', verified: employerVerifications['c_spam'] }
-              ].map(emp => (
-                <div key={emp.id} style={{ border: '1px solid var(--color-border)', padding: '16px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                  <div>
-                    <h4 style={{ fontSize: '14px', fontWeight: 'bold' }}>{emp.name}</h4>
-                    <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>ID: {emp.id}</p>
-                  </div>
-                  
-                  <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                    <button 
-                      className={`btn ${emp.verified ? 'btn-primary' : 'btn-secondary'}`}
-                      style={{ padding: '4px 12px', fontSize: '11px' }}
-                      onClick={() => verifyEmployer(emp.id, !emp.verified)}
-                    >
-                      {emp.verified ? 'Verified Profile' : 'Mark Verified'}
-                    </button>
-                  </div>
-                </div>
-              ))}
+              {pendingJobs.length === 0 && <p style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>No pending jobs to approve.</p>}
             </div>
           </div>
         </div>
       )}
 
-      {/* PLACEMENT COMPLIANCE CHECKLIST MATRIX (PB-36.1) */}
-      {activeTab === 'compliance' && (
+      {/* 3. EMPLOYER VERIFICATION SUBPAGE */}
+      {activeSubpage === 'verification' && (
+        <div className="dashboard-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
+          <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Employer Profile Verification Hub</h3>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+            {[
+              { id: 'c_arvato', name: 'Arvato Systems', verified: employerVerifications['c_arvato'] },
+              { id: 'c_techcorp', name: 'TechCorp Solutions', verified: employerVerifications['c_techcorp'] },
+              { id: 'c_datum', name: 'Datum Technology', verified: employerVerifications['c_datum'] },
+              { id: 'c_ijm', name: 'IJM Corporation', verified: employerVerifications['c_ijm'] },
+              { id: 'c_spam', name: 'Spam Inc (Flagged Cheap Labor)', verified: employerVerifications['c_spam'] }
+            ].map(emp => (
+              <div key={emp.id} style={{ border: '1px solid var(--color-border)', padding: '16px', borderRadius: '8px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h4 style={{ fontSize: '14px', fontWeight: 'bold' }}>{emp.name}</h4>
+                  <p style={{ fontSize: '11px', color: 'var(--color-text-muted)' }}>ID: {emp.id}</p>
+                </div>
+                <button 
+                  className={`btn ${emp.verified ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '4px 12px', fontSize: '11px' }}
+                  onClick={() => verifyEmployer(emp.id, !emp.verified)}
+                >
+                  {emp.verified ? 'Verified Credible' : 'Mark Verified'}
+                </button>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 4. COMPLIANCE MATRIX SUBPAGE */}
+      {activeSubpage === 'compliance' && (
         <div className="dashboard-card">
           <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>Placement Compliance Verification Matrix</h3>
-          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '24px' }}>
-            Check placement parameters. A student's application status cannot transition to `Approved` unless all four pillars are positively verified (`Pass`).
-          </p>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-            {applications.filter(a => a.status === 'Awaiting Offer Verification' || a.status === 'Approved' || a.status === 'Shortlisted').map(app => {
+            {applications.filter(a => a.status === 'Awaiting Offer Verification' || a.status === 'Approved' || a.status === 'Shortlisted' || a.status === 'Interview').map(app => {
               const student = students.find(s => s.id === app.studentId);
               const job = jobs.find(j => j.id === app.jobId);
               const check = checklists[app.id] || { insurance: 'Pending', visa: 'Pending', payModel: 'Pending', csRelevance: 'Pending' };
-              
               const isAllPass = check.insurance === 'Pass' && check.visa === 'Pass' && check.payModel === 'Pass' && check.csRelevance === 'Pass';
 
               return (
                 <div key={app.id} style={{ border: '1px solid var(--color-border)', borderRadius: '12px', padding: '20px', backgroundColor: '#fff' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px', marginBottom: '16px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px', marginBottom: '16px' }}>
                     <div>
                       <h4 style={{ fontSize: '16px', fontWeight: 'bold' }}>{student?.name}</h4>
-                      <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
-                        Interning at: <strong>{job?.companyName}</strong> ({job?.title}) • Letter: <strong>{app.offerLetterName || 'OfferLetter.pdf'}</strong>
-                      </p>
+                      <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Placement at: <strong>{job?.companyName}</strong> ({job?.title})</p>
                     </div>
-                    
                     <div style={{ display: 'flex', gap: '12px', alignItems: 'center' }}>
                       <span className={`badge badge-${app.status.toLowerCase().replace(/ /g, '-')}`}>{app.status}</span>
                       <button 
@@ -250,9 +231,7 @@ export const CareerCentre: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* 4-Pillars Matrix Controls (PB-36.1) */}
                   <div className="compliance-matrix">
-                    {/* Insurance Pillar */}
                     <div className="matrix-pillar-card">
                       <span className="matrix-title">📋 1. Insurance Validation</span>
                       <div className="matrix-toggle-group">
@@ -260,12 +239,7 @@ export const CareerCentre: React.FC = () => {
                         <button className={`matrix-toggle-btn fail ${check.insurance === 'Fail' ? 'active' : ''}`} onClick={() => handleTogglePillar(app.id, 'insurance', 'Fail')}>Fail</button>
                         <button className={`matrix-toggle-btn pending ${check.insurance === 'Pending' ? 'active' : ''}`} onClick={() => handleTogglePillar(app.id, 'insurance', 'Pending')}>Pending</button>
                       </div>
-                      {check.insurance === 'Fail' && check.insuranceDesc && (
-                        <div style={{ fontSize: '11px', color: 'var(--status-rejected)' }}>Reason: {check.insuranceDesc}</div>
-                      )}
                     </div>
-
-                    {/* Visa Status Pillar */}
                     <div className="matrix-pillar-card">
                       <span className="matrix-title">🛂 2. Visa Compliance</span>
                       <div className="matrix-toggle-group">
@@ -273,12 +247,7 @@ export const CareerCentre: React.FC = () => {
                         <button className={`matrix-toggle-btn fail ${check.visa === 'Fail' ? 'active' : ''}`} onClick={() => handleTogglePillar(app.id, 'visa', 'Fail')}>Fail</button>
                         <button className={`matrix-toggle-btn pending ${check.visa === 'Pending' ? 'active' : ''}`} onClick={() => handleTogglePillar(app.id, 'visa', 'Pending')}>Pending</button>
                       </div>
-                      {check.visa === 'Fail' && check.visaDesc && (
-                        <div style={{ fontSize: '11px', color: 'var(--status-rejected)' }}>Reason: {check.visaDesc}</div>
-                      )}
                     </div>
-
-                    {/* Pay Model Pillar */}
                     <div className="matrix-pillar-card">
                       <span className="matrix-title">💵 3. Pay Model Legality</span>
                       <div className="matrix-toggle-group">
@@ -286,12 +255,7 @@ export const CareerCentre: React.FC = () => {
                         <button className={`matrix-toggle-btn fail ${check.payModel === 'Fail' ? 'active' : ''}`} onClick={() => handleTogglePillar(app.id, 'payModel', 'Fail')}>Fail</button>
                         <button className={`matrix-toggle-btn pending ${check.payModel === 'Pending' ? 'active' : ''}`} onClick={() => handleTogglePillar(app.id, 'payModel', 'Pending')}>Pending</button>
                       </div>
-                      {check.payModel === 'Fail' && check.payModelDesc && (
-                        <div style={{ fontSize: '11px', color: 'var(--status-rejected)' }}>Reason: {check.payModelDesc}</div>
-                      )}
                     </div>
-
-                    {/* CS Relevance Pillar */}
                     <div className="matrix-pillar-card">
                       <span className="matrix-title">🎓 4. CS Academic Relevance</span>
                       <div className="matrix-toggle-group">
@@ -299,9 +263,6 @@ export const CareerCentre: React.FC = () => {
                         <button className={`matrix-toggle-btn fail ${check.csRelevance === 'Fail' ? 'active' : ''}`} onClick={() => handleTogglePillar(app.id, 'csRelevance', 'Fail')}>Fail</button>
                         <button className={`matrix-toggle-btn pending ${check.csRelevance === 'Pending' ? 'active' : ''}`} onClick={() => handleTogglePillar(app.id, 'csRelevance', 'Pending')}>Pending</button>
                       </div>
-                      {check.csRelevance === 'Fail' && check.csRelevanceDesc && (
-                        <div style={{ fontSize: '11px', color: 'var(--status-rejected)' }}>Reason: {check.csRelevanceDesc}</div>
-                      )}
                     </div>
                   </div>
                 </div>
@@ -311,254 +272,117 @@ export const CareerCentre: React.FC = () => {
         </div>
       )}
 
-      {/* LANGUAGE LIAISON TRIGGER (PB-37.1) */}
-      {activeTab === 'liaison' && (
+      {/* 5. LIAISON FLAGS SUBPAGE */}
+      {activeSubpage === 'liaison' && (
         <div className="dashboard-card">
           <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>Website translation & Language Liaison Flags</h3>
-          <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
-            If an employer's website contains non-translatable text, trigger a Liaison Flag. This will notify language-proficient lecturers and lock the placement.
-          </p>
-
+          
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1.2fr', gap: '24px', alignItems: 'start' }}>
-            {/* Form trigger */}
             <div className="dashboard-card" style={{ margin: 0, backgroundColor: '#f8fafc' }}>
               <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>Trigger Language Liaison</h4>
-              
               <div className="form-group">
-                <span className="form-label">Select Active Placement App:</span>
-                <select 
-                  className="form-input"
-                  onChange={e => setLiaisonAppId(e.target.value)}
-                >
-                  <option value="">-- Select Placement Application --</option>
-                  {applications.filter(a => a.status !== 'Withdrawn' && a.status !== 'Rejected').map(app => {
-                    const student = students.find(s => s.id === app.studentId);
-                    return <option key={app.id} value={app.id}>{student?.name} (App ID: {app.id})</option>;
-                  })}
+                <span className="form-label">Select Placement App:</span>
+                <select className="form-input" onChange={e => setLiaisonAppId(e.target.value)}>
+                  <option value="">-- Select Placement --</option>
+                  {applications.map(app => (
+                    <option key={app.id} value={app.id}>App ID: {app.id}</option>
+                  ))}
                 </select>
               </div>
-
               <div className="form-group">
-                <span className="form-label">Required Language Proficiency:</span>
+                <span className="form-label">Required Language:</span>
                 <select className="form-input" value={liaisonLanguage} onChange={e => setLiaisonLanguage(e.target.value)}>
                   <option value="Japanese">Japanese</option>
                   <option value="Mandarin">Mandarin</option>
                   <option value="German">German</option>
                 </select>
               </div>
-
               <div className="form-group">
-                <span className="form-label">Target Lecturer / Staff:</span>
+                <span className="form-label">Target Lecturer:</span>
                 <select className="form-input" value={liaisonLecturer} onChange={e => setLiaisonLecturer(e.target.value)}>
-                  <option value="Dr. Lee (Japanese expert)">Dr. Lee (Japanese proficient)</option>
-                  <option value="Dr. Wong (Mandarin expert)">Dr. Wong (Mandarin proficient)</option>
-                  <option value="Dr. Schmidt (German expert)">Dr. Schmidt (German proficient)</option>
+                  <option value="Dr. Lee (Japanese expert)">Dr. Lee (Japanese expert)</option>
+                  <option value="Dr. Wong (Mandarin expert)">Dr. Wong (Mandarin expert)</option>
+                  <option value="Dr. Schmidt (German expert)">Dr. Schmidt (German expert)</option>
                 </select>
               </div>
-
-              <button 
-                className="btn btn-primary" 
-                style={{ width: '100%' }}
-                onClick={handleTriggerLiaison}
-                disabled={!liaisonAppId}
-              >
-                Trigger Liaison Flag
-              </button>
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={handleTriggerLiaison} disabled={!liaisonAppId}>Trigger Flag</button>
             </div>
 
-            {/* Active flags list */}
             <div className="dashboard-card" style={{ margin: 0 }}>
               <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>Active Language Liaison Flags</h4>
-              
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {Object.entries(liaisonFlags).map(([appId, flag]) => {
-                  const app = applications.find(a => a.id === appId);
-                  const student = students.find(s => s.id === app?.studentId);
-                  
-                  return (
-                    <div key={appId} className="international-banner">
-                      <div>
-                        <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--status-rejected)' }}>
-                          🌐 Liaison Active: {flag.language} (App: {appId})
-                        </h4>
-                        <p style={{ fontSize: '11px', color: 'var(--color-text-main)', marginTop: '4px' }}>
-                          Candidate: <strong>{student?.name}</strong> • Assigned: <strong>{flag.lecturerId}</strong>
-                        </p>
-                        <p style={{ fontSize: '10px', color: 'var(--color-text-muted)', marginTop: '2px' }}>
-                          Status: **Locked under international review banner.**
-                        </p>
-                      </div>
-                      <button 
-                        className="btn btn-secondary" 
-                        style={{ padding: '4px 10px', fontSize: '11px' }}
-                        onClick={() => resolveLiaisonFlag(appId)}
-                      >
-                        Clear Flag
-                      </button>
+                {Object.entries(liaisonFlags).map(([appId, flag]) => (
+                  <div key={appId} className="international-banner">
+                    <div>
+                      <h4 style={{ fontSize: '14px', fontWeight: 'bold', color: 'var(--status-rejected)' }}>🌐 Liaison Active: {flag.language}</h4>
+                      <p style={{ fontSize: '11px' }}>Assigned Lecturer: {flag.lecturerId}</p>
                     </div>
-                  );
-                })}
-
-                {Object.keys(liaisonFlags).length === 0 && (
-                  <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontStyle: 'italic', textAlign: 'center', padding: '24px 0' }}>
-                    No active language liaison flags.
-                  </p>
-                )}
+                    <button className="btn btn-secondary" onClick={() => resolveLiaisonFlag(appId)}>Clear Flag</button>
+                  </div>
+                ))}
+                {Object.keys(liaisonFlags).length === 0 && <p style={{ fontStyle: 'italic', color: 'var(--color-text-muted)' }}>No active flags.</p>}
               </div>
             </div>
           </div>
         </div>
       )}
 
-      {/* REPORTS & AI ANALYTICS (PB-01, PB-02, PB-07, PB-08, PB-09, PB-15, PB-16) */}
-      {activeTab === 'reports' && (
+      {/* 6. REPORTS & ANALYTICS SUBPAGE */}
+      {activeSubpage === 'reports' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
-          {/* Charts Row */}
           <div className="form-grid">
             <div className="dashboard-card" style={{ margin: 0, display: 'flex', justifyContent: 'center' }}>
-              <SVGChart 
-                type="bar" 
-                title="Placements by Major / Industry Specialization (PB-01)"
-                data={placementData}
-              />
+              <SVGChart type="bar" title="Placements by Major (PB-01)" data={placementData} />
             </div>
-            
             <div className="dashboard-card" style={{ margin: 0, display: 'flex', justifyContent: 'center' }}>
-              <SVGChart 
-                type="pie" 
-                title="Company Acceptance vs Rejection Outcomes (PB-02)"
-                data={outcomesData}
-              />
+              <SVGChart type="pie" title="Company Acceptance Outcomes (PB-02)" data={outcomesData} />
             </div>
           </div>
 
-          {/* Download Outcome Reports PDF & AI summaries */}
           <div className="form-grid">
-            {/* PDF Compiler */}
             <div className="dashboard-card" style={{ margin: 0 }}>
-              <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>Compile Outcome Reports (PB-07)</h3>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '24px' }}>
-                Download compiled internship outcome reports detailing placement ratios, student details, and employer verification statuses.
-              </p>
-
-              <button 
-                className="btn btn-primary" 
-                style={{ width: '100%' }}
-                onClick={() => {
-                  alert('Compiling outcomes data...\nGenerating PDF outcome reports...\nDownload success: placement_outcome_report_2026.pdf');
-                }}
-              >
-                📥 Download Outcome Report (PDF)
-              </button>
+              <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>Compile Outcome Reports</h3>
+              <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => alert('PDF report downloaded successfully.')}>Compile & Download PDF Report</button>
             </div>
-
-            {/* AI feedback analyzer */}
             <div className="dashboard-card" style={{ margin: 0 }}>
-              <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>AI Feedback Processor & Analytics (PB-15, PB-16)</h3>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>
-                Utilize NLP analytics to summarize employer supervisor feedback forms and extract common strengths and weaknesses.
-              </p>
-
-              <button 
-                className="btn btn-secondary" 
-                style={{ width: '100%' }}
-                onClick={handleGenerateAISummaries}
-                disabled={aiLoading}
-              >
-                {aiLoading ? 'AI Analyzing Feedbacks...' : '💡 Analyze & Generate AI Feedback Summaries'}
-              </button>
-
-              {aiSummary && (
-                <div className="slide-up" style={{ marginTop: '16px', padding: '12px', backgroundColor: 'var(--color-primary-light)', border: '1px solid var(--color-primary)', borderRadius: '6px', fontSize: '12px', whiteSpace: 'pre-line', fontFamily: 'monospace' }}>
-                  {aiSummary}
-                </div>
-              )}
+              <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>AI Feedback Processor</h3>
+              <button className="btn btn-secondary" style={{ width: '100%' }} onClick={handleGenerateAISummaries} disabled={aiLoading}>{aiLoading ? 'Analyzing...' : 'Generate AI Feedbacks Summary'}</button>
+              {aiSummary && <div style={{ marginTop: '16px', padding: '12px', backgroundColor: 'var(--color-primary-light)', fontSize: '12px', whiteSpace: 'pre-line' }}>{aiSummary}</div>}
             </div>
           </div>
-          
-          {/* Audit Logs */}
-          <div className="dashboard-card">
-            <h3 style={{ fontSize: '16px', marginBottom: '12px' }}>System Portal Audit Trails (NFR-25)</h3>
-            <div style={{ maxHeight: '180px', overflowY: 'auto', border: '1px solid var(--color-border)', borderRadius: '6px', backgroundColor: '#f8fafc', padding: '12px', fontSize: '11px', fontFamily: 'monospace' }}>
-              {systemLogs.map(log => (
-                <div key={log.id} style={{ borderBottom: '1px solid #e2e8f0', paddingBottom: '6px', marginBottom: '6px' }}>
-                  <span style={{ color: 'var(--color-primary)' }}>[{log.timestamp}]</span> <strong>{log.user}:</strong> {log.action}
-                </div>
-              ))}
-            </div>
-          </div>
-
         </div>
       )}
 
-      {/* REJECT POSTING DIALOG MODAL (PB-06) */}
+      {/* 7. SETTINGS SUBPAGE */}
+      {activeSubpage === 'settings' && (
+        <div className="dashboard-card" style={{ maxWidth: '500px' }}>
+          <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Settings</h3>
+          <p>Configure general Career Center administration settings here.</p>
+        </div>
+      )}
+
+      {/* REJECT POSTING MODAL */}
       {rejectingJobId && (
         <div className="modal-overlay">
           <div className="modal-content">
             <h3 className="modal-title" style={{ color: 'var(--status-rejected)' }}>Reject Internship Posting</h3>
-            <p className="modal-body">
-              Please specify a mandatory rejection reason. This will trigger a notification to the industry representative.
-            </p>
-
-            <div className="form-group">
-              <span className="form-label">Rejection Reason:</span>
-              <textarea 
-                className="form-input" 
-                rows={3} 
-                placeholder="e.g. Scope lacks CS academic relevance / Commission-only model violates placement policies..."
-                value={rejectReason}
-                onChange={e => setRejectReason(e.target.value)}
-              />
-            </div>
-
-            <div className="modal-buttons">
+            <textarea className="form-input" rows={3} placeholder="Provide mandatory rejection reason..." value={rejectReason} onChange={e => setRejectReason(e.target.value)} />
+            <div className="modal-buttons" style={{ marginTop: '12px' }}>
               <button className="btn btn-secondary" onClick={() => setRejectingJobId(null)}>Cancel</button>
-              <button 
-                className="btn btn-danger"
-                onClick={() => {
-                  if (!rejectReason) return;
-                  rejectJob(rejectingJobId, rejectReason);
-                  setRejectingJobId(null);
-                  setRejectReason('');
-                }}
-              >
-                Confirm Rejection
-              </button>
+              <button className="btn btn-danger" onClick={() => { if (rejectReason) { rejectJob(rejectingJobId, rejectReason); setRejectingJobId(null); setRejectReason(''); } }}>Confirm Rejection</button>
             </div>
           </div>
         </div>
       )}
 
-      {/* COMPLIANCE FAIL DIALOG MODAL (PB-36.1) */}
       {failPillar && (
         <div className="modal-overlay">
           <div className="modal-content">
-            <h3 className="modal-title" style={{ color: 'var(--status-rejected)' }}>Record Verification Failure</h3>
-            <p className="modal-body">
-              Please specify the reason for marking the **{failPillar.pillar.toUpperCase()}** condition as Failed.
-            </p>
-
-            <div className="form-group">
-              <span className="form-label">Failure Details:</span>
-              <textarea 
-                className="form-input" 
-                rows={3} 
-                placeholder="e.g. Student visa is expiring before the completion deadline..."
-                value={failReason}
-                onChange={e => setFailReason(e.target.value)}
-              />
-            </div>
-
-            <div className="modal-buttons">
+            <h3 className="modal-title" style={{ color: 'var(--status-rejected)' }}>Verification Failure Reason</h3>
+            <textarea className="form-input" rows={3} placeholder="Specify failure reason..." value={failReason} onChange={e => setFailReason(e.target.value)} />
+            <div className="modal-buttons" style={{ marginTop: '12px' }}>
               <button className="btn btn-secondary" onClick={() => setFailPillar(null)}>Cancel</button>
-              <button 
-                className="btn btn-danger"
-                onClick={submitFailReason}
-                disabled={!failReason}
-              >
-                Submit Failure Report
-              </button>
+              <button className="btn btn-danger" onClick={submitFailReason} disabled={!failReason}>Confirm Failure</button>
             </div>
           </div>
         </div>

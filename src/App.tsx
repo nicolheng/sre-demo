@@ -1,114 +1,135 @@
 import React, { useState } from 'react';
 import { PortalProvider, usePortal } from './context/PortalState';
-import type { UserRole } from './context/PortalState';
 import StudentPortal from './roles/StudentPortal';
 import EmployerPortal from './roles/EmployerPortal';
 import LecturerPortal from './roles/LecturerPortal';
 import CareerCentre from './roles/CareerCentre';
 import MobileFrame from './components/MobileFrame';
+import AuthPortal from './components/AuthPortal';
 
 const PortalShell: React.FC = () => {
-  const { currentRole, setCurrentRole } = usePortal();
+  const { 
+    isAuthenticated, 
+    loggedInUser, 
+    currentRole, 
+    activeSubpage, 
+    setActiveSubpage,
+    logout 
+  } = usePortal();
   
   // Toggle for Student Mobile View Simulator
-  const [mobilePreview, setMobilePreview] = useState(true);
+  const [mobilePreview, setMobilePreview] = useState(false);
 
-  // Sidebar link icons and labels based on active role
+  if (!isAuthenticated || !loggedInUser) {
+    return <AuthPortal />;
+  }
+
+  // Sidebar links based on active role (matching screens precisely!)
   const getSidebarConfig = () => {
     switch (currentRole) {
       case 'Student':
         return {
-          title: 'Student Talents Hub',
+          title: 'Student Portal',
+          themeClass: 'theme-student',
           links: [
-            { icon: '📋', label: 'My Applications' },
-            { icon: '🔍', label: 'Discover Jobs' },
-            { icon: '📖', label: 'Logbook Entries' },
-            { icon: '📅', label: 'Interview Scheduler' },
-            { icon: '⭐', label: 'Company Reviews' }
-          ],
-          user: {
-            name: 'Julian (Student)',
-            sub: 'WIA210045 • CGPA 3.82',
-            avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=120'
-          }
+            { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+            { id: 'applications', icon: '📋', label: 'My Applications' },
+            { id: 'portfolio', icon: '💼', label: 'Portfolio' },
+            { id: 'assessments', icon: '📝', label: 'Assessments' },
+            { id: 'interviews', icon: '📅', label: 'Interview Booking' },
+            { id: 'logbook', icon: '📊', label: 'Weekly Progress' },
+            { id: 'offer-letter', icon: '✉️', label: 'Offer Letter' },
+            { id: 'reviews', icon: '⭐', label: 'Reviews' },
+            { id: 'messages', icon: '💬', label: 'Messages' },
+            { id: 'profile', icon: '👤', label: 'Profile' },
+            { id: 'settings', icon: '⚙️', label: 'Settings' }
+          ]
         };
       case 'Employer':
         return {
-          title: 'Arvato HR Portal',
+          title: 'HR Dashboard',
+          themeClass: 'theme-employer',
           links: [
-            { icon: '👥', label: 'Applicant Hub' },
-            { icon: '📊', label: 'Candidate Matrix' },
-            { icon: '📆', label: 'Interview Slots' },
-            { icon: '📝', label: 'Configure Postings' },
-            { icon: '🤝', label: 'University Sync' }
-          ],
-          user: {
-            name: 'Puan Aisyah (HR)',
-            sub: 'Arvato Systems',
-            avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120'
-          }
+            { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+            { id: 'jobs', icon: '📝', label: 'Job Postings' },
+            { id: 'candidates', icon: '👥', label: 'Candidates' },
+            { id: 'shortlisted', icon: '⭐', label: 'Shortlisted' },
+            { id: 'interviews', icon: '📅', label: 'Interviews' },
+            { id: 'ai-recs', icon: '🤖', label: 'AI Recommendations' },
+            { id: 'messages', icon: '💬', label: 'Messages' },
+            { id: 'reports', icon: '📊', label: 'Reports & Analytics' },
+            { id: 'settings', icon: '⚙️', label: 'Settings' }
+          ]
         };
       case 'Lecturer':
         return {
-          title: 'Supervision Workspace',
+          title: 'Lecturer Dashboard',
+          themeClass: 'theme-lecturer',
           links: [
-            { icon: '🧑‍🎓', label: 'My Student Logs' },
-            { icon: '📊', label: 'Gantt Timelines' },
-            { icon: '📍', label: 'Visit Route Maps' },
-            { icon: '💼', label: 'Collaborative Hub' }
-          ],
-          user: {
-            name: 'Dr. Aris (Lecturer)',
-            sub: 'Faculty of CS & IT',
-            avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120'
-          }
+            { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+            { id: 'students', icon: '🧑‍🎓', label: 'My Students' },
+            { id: 'partners', icon: '🏢', label: 'Industry Partners' },
+            { id: 'reports', icon: '📋', label: 'Internship Reports' },
+            { id: 'planning', icon: '📅', label: 'Project Planning' },
+            { id: 'monitoring', icon: '📊', label: 'Progress Monitoring' },
+            { id: 'messages', icon: '💬', label: 'Messages' },
+            { id: 'profile', icon: '👤', label: 'Profile' },
+            { id: 'settings', icon: '⚙️', label: 'Settings' }
+          ]
         };
       case 'CareerCentre':
         return {
           title: 'Governance Portal',
+          themeClass: 'theme-career',
           links: [
-            { icon: '🛡️', label: 'Draft Approvals' },
-            { icon: '📋', label: 'Checklist Matrix' },
-            { icon: '🌐', label: 'Liaison Flags' },
-            { icon: '📈', label: 'Outcomes & Reports' }
-          ],
-          user: {
-            name: 'Puan Siti (CC Staff)',
-            sub: 'Lead Coordinator',
-            avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=120'
-          }
+            { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
+            { id: 'approvals', icon: '🛡️', label: 'Job Approvals' },
+            { id: 'verification', icon: '🏢', label: 'Employer Verification' },
+            { id: 'compliance', icon: '📋', label: 'Compliance Matrix' },
+            { id: 'liaison', icon: '🌐', label: 'Liaison Flags' },
+            { id: 'reports', icon: '📊', label: 'Reports & Analytics' },
+            { id: 'settings', icon: '⚙️', label: 'Settings' }
+          ]
         };
     }
   };
 
   const config = getSidebarConfig();
 
+  // Notification count simulation
+  const getNotificationCount = () => {
+    if (currentRole === 'Student') return 3;
+    if (currentRole === 'Employer') return 5;
+    if (currentRole === 'Lecturer') return 4;
+    return 2;
+  };
+
   return (
-    <div className="app-container">
+    <div className={`app-container ${config.themeClass}`}>
       {/* Global Header */}
       <header className="app-header">
         <div className="logo-section">
           <div className="logo-icon">🎓</div>
           <div className="logo-text">
-            <h1>SRE MATCH</h1>
-            <span>Micro-Internship Portal</span>
+            <h1>Internship Portal</h1>
+            <span>{currentRole === 'CareerCentre' ? 'Career Centre staff' : `${currentRole} panel`}</span>
           </div>
         </div>
 
-        {/* Global Role Switcher */}
-        <div className="role-switcher">
-          {(['Student', 'Employer', 'Lecturer', 'CareerCentre'] as UserRole[]).map(role => (
-            <button
-              key={role}
-              onClick={() => setCurrentRole(role)}
-              className={`role-btn ${currentRole === role ? 'active' : ''}`}
-            >
-              {role === 'Student' && '🧑‍🎓 Student'}
-              {role === 'Employer' && '💼 Employer HR'}
-              {role === 'Lecturer' && '🧑‍🏫 Lecturer'}
-              {role === 'CareerCentre' && '🛡️ Career Centre'}
-            </button>
-          ))}
+        {/* Header Right Items: Notifications & User Widget */}
+        <div className="header-right-items">
+          <div className="notification-bell-wrapper">
+            <span className="bell-icon">🔔</span>
+            <span className="bell-badge">{getNotificationCount()}</span>
+          </div>
+          <div className="header-user-profile">
+            <img src={loggedInUser.avatar} alt={loggedInUser.name} className="user-avatar-header" />
+            <div className="user-header-details">
+              <span className="user-header-name">{loggedInUser.name}</span>
+              <span className="user-header-role">{loggedInUser.role}</span>
+            </div>
+            <span className="header-dropdown-arrow">▼</span>
+          </div>
         </div>
       </header>
 
@@ -116,22 +137,37 @@ const PortalShell: React.FC = () => {
       <div className="app-body">
         {/* Sidebar */}
         <aside className="app-sidebar">
-          <div className="sidebar-menu">
+          <div className="sidebar-top-section">
             <h3 className="menu-title">{config.title}</h3>
-            {config.links.map((link, idx) => (
-              <button key={idx} className="sidebar-link active">
-                <span className="sidebar-link-icon">{link.icon}</span>
-                <span>{link.label}</span>
-              </button>
-            ))}
+            <div className="sidebar-menu">
+              {config.links.map((link) => (
+                <button
+                  key={link.id}
+                  onClick={() => setActiveSubpage(link.id)}
+                  className={`sidebar-link ${activeSubpage === link.id ? 'active' : ''}`}
+                >
+                  <span className="sidebar-link-icon">{link.icon}</span>
+                  <span>{link.label}</span>
+                </button>
+              ))}
+            </div>
           </div>
 
-          <div className="sidebar-footer">
-            <img src={config.user.avatar} alt={config.user.name} className="user-avatar" />
-            <div className="user-info">
-              <h4>{config.user.name}</h4>
-              <p>{config.user.sub}</p>
+          <div className="sidebar-bottom-section">
+            {/* User profile widget at the bottom */}
+            <div className="sidebar-footer">
+              <img src={loggedInUser.avatar} alt={loggedInUser.name} className="user-avatar" />
+              <div className="user-info">
+                <h4>{loggedInUser.name}</h4>
+                <p>{loggedInUser.subText || loggedInUser.email}</p>
+              </div>
             </div>
+
+            {/* Logout Trigger */}
+            <button className="sidebar-link active logout-btn" onClick={logout} style={{ marginTop: '12px' }}>
+              <span className="sidebar-link-icon">🚪</span>
+              <span>Logout</span>
+            </button>
           </div>
         </aside>
 
@@ -141,7 +177,14 @@ const PortalShell: React.FC = () => {
             <div>
               {/* Mobile preview toggle display */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
-                <h2 style={{ fontSize: '24px', fontWeight: 800, fontFamily: 'var(--font-display)' }}>Student Talents Portal</h2>
+                <div>
+                  <h2 style={{ fontSize: '24px', fontWeight: 800, fontFamily: 'var(--font-display)' }}>
+                    {activeSubpage === 'dashboard' ? 'Student Dashboard' : `Student Portal — ${activeSubpage.charAt(0).toUpperCase() + activeSubpage.slice(1)}`}
+                  </h2>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+                    Matric Card: <strong>{loggedInUser.details?.matric}</strong> • CGPA: <strong>3.82</strong> • Major: <strong>{loggedInUser.details?.major}</strong>
+                  </p>
+                </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: 600 }}>Mobile Layout Preview:</span>
                   <button 
@@ -161,9 +204,9 @@ const PortalShell: React.FC = () => {
           ) : (
             <div className="slide-up">
               <h2 style={{ fontSize: '24px', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '24px' }}>
-                {currentRole === 'Employer' && 'Employer HR Sourcing Dashboard'}
-                {currentRole === 'Lecturer' && 'Academic Supervision & Compliance Panel'}
-                {currentRole === 'CareerCentre' && 'Career Centre Oversight & Audit Manager'}
+                {currentRole === 'Employer' && (activeSubpage === 'dashboard' ? 'Employer HR Sourcing Dashboard' : `HR Recruiter — ${activeSubpage.toUpperCase()}`)}
+                {currentRole === 'Lecturer' && (activeSubpage === 'dashboard' ? 'Academic Supervision & Compliance Panel' : `Faculty Advisor — ${activeSubpage.toUpperCase()}`)}
+                {currentRole === 'CareerCentre' && (activeSubpage === 'dashboard' ? 'Career Centre Oversight & Audit Manager' : `Governance Portal — ${activeSubpage.toUpperCase()}`)}
               </h2>
               {currentRole === 'Employer' && <EmployerPortal />}
               {currentRole === 'Lecturer' && <LecturerPortal />}

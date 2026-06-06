@@ -15,9 +15,23 @@ import type {
 
 export type UserRole = 'Student' | 'Employer' | 'Lecturer' | 'CareerCentre';
 
+export interface LoggedInUser {
+  id: string;
+  name: string;
+  email: string;
+  avatar: string;
+  role: UserRole;
+  subText?: string;
+  details?: Record<string, string>;
+}
+
 interface PortalContextType {
+  isAuthenticated: boolean;
+  loggedInUser: LoggedInUser | null;
   currentRole: UserRole;
   setCurrentRole: (role: UserRole) => void;
+  activeSubpage: string;
+  setActiveSubpage: (subpage: string) => void;
   students: Student[];
   jobs: Job[];
   applications: Application[];
@@ -30,8 +44,14 @@ interface PortalContextType {
   reviews: StudentReview[];
   employerFeedbacks: EmployerFeedback[];
   liaisonFlags: Record<string, { language: string; lecturerId: string; bannerActive: boolean }>;
+  employerVerifications: Record<string, boolean>; // companyId -> verified
+
+  // Authentication Actions
+  login: (email: string, role: UserRole) => boolean;
+  logout: () => void;
+  register: (name: string, email: string, phone: string, role: UserRole, details: Record<string, string>) => void;
   
-  // Actions
+  // App Actions
   addJob: (job: Omit<Job, 'id' | 'logo' | 'isApproved' | 'createdAt'>) => void;
   approveJob: (jobId: string) => void;
   rejectJob: (jobId: string, reason: string) => void;
@@ -59,7 +79,6 @@ interface PortalContextType {
   uploadOfferLetter: (appId: string, fileName: string) => void;
   verifyPlacement: (appId: string) => void;
   verifyEmployer: (companyId: string, verified: boolean) => void;
-  employerVerifications: Record<string, boolean>; // companyId -> verified
 }
 
 const PortalContext = createContext<PortalContextType | undefined>(undefined);
@@ -68,14 +87,14 @@ const PortalContext = createContext<PortalContextType | undefined>(undefined);
 const mockStudents: Student[] = [
   {
     id: 's1',
-    name: 'Julian',
-    email: 'julian@university.edu.my',
+    name: 'John Lim',
+    email: 'john.lim@university.edu.my',
     phone: '+60 12-345 6789',
     cgpa: 3.82,
-    skills: ['React', 'TypeScript', 'Node.js', 'Cloud Ops', 'HTML', 'CSS'],
+    skills: ['React', 'TypeScript', 'Node.js', 'Cloud Ops', 'HTML', 'CSS', 'UI/UX'],
     achievements: ['Dean\'s List Award (Sem 1-5)', '1st Place Hackathon 2025', 'Google cloud cert'],
     projects: ['Distributed Cloud System', 'Academic Planner Web App', 'Vulnerability Scanner'],
-    matricNumber: 'WIA210045',
+    matricNumber: '20234567',
     avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=120'
   },
   {
@@ -119,13 +138,13 @@ const mockStudents: Student[] = [
 const mockJobs: Job[] = [
   {
     id: 'j1',
-    title: 'Software Engineer Intern',
-    companyName: 'Arvato Systems',
-    companyId: 'c_arvato',
+    title: 'Mobile Developer Intern',
+    companyName: 'Datum Technology',
+    companyId: 'c_datum',
     duration: '3 months',
-    scope: 'Develop and maintain web applications using React, TypeScript, and Node.js. Learn and apply cloud deployment methodologies.',
+    scope: 'Develop and maintain mobile application features using React Native and TypeScript. Collaborate with UI/UX designers.',
     requiredSkills: ['React', 'TypeScript', 'Node.js', 'HTML', 'CSS'],
-    specializationTags: ['Software Engineering', 'Web Development'],
+    specializationTags: ['Software Engineering', 'Mobile Development'],
     deadline: '2026-06-30',
     screeningQuestions: [
       'Describe a complex programming project you worked on and the technical hurdles you overcame.',
@@ -134,44 +153,41 @@ const mockJobs: Job[] = [
     videoDurationLimit: 60,
     isApproved: true,
     createdAt: '2026-06-01',
-    logo: '💼'
+    logo: 'DT'
   },
   {
     id: 'j2',
-    title: 'UI/UX Designer Intern',
-    companyName: 'Arvato Systems',
-    companyId: 'c_arvato',
+    title: 'Software Intern',
+    companyName: 'IJM Corporation',
+    companyId: 'c_ijm',
     duration: '3 months',
-    scope: 'Conduct user research, draft wireframes, and design interactive prototypes in Figma for enterprise portal applications.',
-    requiredSkills: ['Figma', 'UI/UX', 'HTML', 'CSS'],
-    specializationTags: ['UI/UX', 'Software Engineering'],
+    scope: 'Conduct full-stack software development under senior engineers. Assist in building robust cloud and local APIs.',
+    requiredSkills: ['React', 'TypeScript', 'HTML', 'CSS'],
+    specializationTags: ['Software Engineering', 'Web Development'],
     deadline: '2026-06-25',
     screeningQuestions: [
-      'Provide a link to your design portfolio and explain the design thinking process behind your favorite project.',
-      'How do you hand off designs to front-end developers?'
+      'Provide a link to your design portfolio or GitHub and explain the design thinking process.',
+      'How do you write cleaner asynchronous code in JavaScript?'
     ],
     videoDurationLimit: 90,
     isApproved: true,
     createdAt: '2026-06-02',
-    logo: '🎨'
+    logo: 'IJM'
   },
   {
     id: 'j3',
-    title: 'Data Analyst Intern',
-    companyName: 'TechCorp Solutions',
-    companyId: 'c_techcorp',
-    duration: '6 months',
-    scope: 'Extract, clean, and analyze customer usage data using SQL and Python. Build interactive dashboards in Tableau to visualize metrics.',
-    requiredSkills: ['SQL', 'Python', 'Tableau', 'Pandas'],
-    specializationTags: ['Data Science'],
+    title: 'UI/UX Designer Intern',
+    companyName: 'Arvato Systems',
+    companyId: 'c_arvato',
+    duration: '3 months',
+    scope: 'Draft wireframes, design mockups, and develop front-end HTML/CSS layouts.',
+    requiredSkills: ['Figma', 'UI/UX', 'HTML', 'CSS'],
+    specializationTags: ['UI/UX'],
     deadline: '2026-06-28',
     isApproved: true,
     createdAt: '2026-06-03',
-    logo: '📈',
-    screeningQuestions: [
-      'Describe a time you solved a business problem using data analytics.',
-      'What is your experience with database optimization and query writing?'
-    ],
+    logo: '💼',
+    screeningQuestions: ['What is your design philosophy?'],
     videoDurationLimit: 120
   },
   {
@@ -180,17 +196,14 @@ const mockJobs: Job[] = [
     companyName: 'TechCorp Solutions',
     companyId: 'c_techcorp',
     duration: '3 months',
-    scope: 'Train and evaluate NLP and computer vision models using PyTorch. Assist with data preprocessing pipelines for machine learning datasets.',
+    scope: 'Train and evaluate NLP models using PyTorch.',
     requiredSkills: ['Python', 'PyTorch', 'TensorFlow', 'Machine Learning'],
     specializationTags: ['AI', 'Data Science'],
     deadline: '2026-06-15',
-    isApproved: false, // Pending Approval
+    isApproved: true,
     createdAt: '2026-06-05',
     logo: '🤖',
-    screeningQuestions: [
-      'What ML frameworks do you prefer and why?',
-      'Detail your project experience implementing deep neural networks.'
-    ],
+    screeningQuestions: ['What ML frameworks do you prefer?'],
     videoDurationLimit: 180
   },
   {
@@ -199,14 +212,14 @@ const mockJobs: Job[] = [
     companyName: 'Spam Inc',
     companyId: 'c_spam',
     duration: '2 months',
-    scope: 'Spam social media feeds with copy-paste marketing posts. Work is commission-only base ($50 flat per month base). Non-technical role.',
+    scope: 'Spam social media feeds with copy-paste marketing posts. Commission-only base.',
     requiredSkills: ['Copywriting', 'Social Media'],
     specializationTags: ['Marketing'],
     deadline: '2026-06-12',
-    isApproved: false, // Pending Approval, violates guidelines (cheap labor, non-CS tasks)
+    isApproved: false, // Pending Approval, violates guidelines
     createdAt: '2026-06-06',
     logo: '⚠️',
-    screeningQuestions: ['Are you willing to work on a 100% commission basis?'],
+    screeningQuestions: ['Are you willing to work on commission?'],
     videoDurationLimit: 60
   }
 ];
@@ -215,57 +228,56 @@ const mockApplications: Application[] = [
   {
     id: 'a1',
     jobId: 'j1',
-    studentId: 's1', // Julian applied to Software Eng at Arvato
+    studentId: 's1', // John Lim applied to Datum Technology
     submissionDate: '2026-06-02',
-    status: 'Interview',
-    cvName: 'Julian_CV_WIA210045.pdf',
-    statementOfPurpose: 'I wish to expand my full-stack programming capabilities in an enterprise setting, focusing on React and cloud systems.',
-    contactEmail: 'julian@university.edu.my',
+    status: 'Screening',
+    cvName: 'JohnLim_CV_20234567.pdf',
+    statementOfPurpose: 'I wish to expand my mobile developer programming capabilities, focusing on React Native and cloud systems.',
+    contactEmail: 'john.lim@university.edu.my',
     contactPhone: '+60 12-345 6789',
     screeningAnswers: {
-      '0': 'I built a distributed storage server cluster using Node.js and WebSockets. The primary hurdle was synchronizing file consistency, which I solved using a simplified Raft consensus algorithm.',
-      '1': 'I am highly experienced with Redux Toolkit and Context API. I prefer Context API for lightweight state containers and Redux for complex, multi-layered dashboards.'
+      '0': 'I built a distributed storage server cluster using Node.js and WebSockets.',
+      '1': 'I am highly experienced with Redux Toolkit and Context API.'
     },
     videoResponseUrl: 'https://sample-videos.com/video321/mp4/720/big_buck_bunny_720p_1mb.mp4'
   },
   {
     id: 'a2',
     jobId: 'j2',
-    studentId: 's2', // Maya applied to UI/UX at Arvato
+    studentId: 's1', // John Lim applied to IJM Corporation
     submissionDate: '2026-06-03',
-    status: 'Screening',
-    cvName: 'Maya_UX_Resume.pdf',
-    statementOfPurpose: 'Designing beautiful interfaces is my passion. I want to learn how Arvato implements enterprise-grade design systems.',
-    contactEmail: 'maya@university.edu.my',
-    contactPhone: '+60 17-654 3210',
+    status: 'Interview',
+    cvName: 'JohnLim_CV_20234567.pdf',
+    statementOfPurpose: 'I want to build highly functional enterprise web pages using React and TypeScript.',
+    contactEmail: 'john.lim@university.edu.my',
+    contactPhone: '+60 12-345 6789',
     screeningAnswers: {
-      '0': 'Here is my portfolio link: behance.net/mayadesigns. For my e-commerce project, I conducted user interviews of 10 students, identified navigation friction, and re-designed the layout resulting in 40% faster checkout.',
-      '1': 'I use Figma Dev Mode, group styles systematically into variables (tokens), and generate automated CSS classes to make translation simple for devs.'
+      '0': 'Here is my GitHub: github.com/johnlim.',
+      '1': 'I prefer async/await structures as it avoids nesting callback hell.'
     }
   },
   {
     id: 'a3',
     jobId: 'j3',
-    studentId: 's4', // Sophia applied to Data Analyst at TechCorp
+    studentId: 's2', // Maya applied to Arvato UI/UX
     submissionDate: '2026-06-04',
     status: 'Applied',
-    cvName: 'Sophia_Data_Analyst.pdf',
-    statementOfPurpose: 'To leverage my statistical analytics training to drive product decisions.',
-    contactEmail: 'sophia@university.edu.my',
-    contactPhone: '+60 13-987 6543',
+    cvName: 'Maya_UX_Resume.pdf',
+    statementOfPurpose: 'Designing beautiful interfaces is my passion.',
+    contactEmail: 'maya@university.edu.my',
+    contactPhone: '+60 17-654 3210',
     screeningAnswers: {
-      '0': 'I analyzed campus library attendance logs and identified that adding seating during peak study hours would reduce overcrowding. The college board implemented this based on my report.',
-      '1': 'I write nested subqueries, CTEs, and window functions in SQL Server and Postgres. I also configure index profiles to speed up heavy queries.'
+      '0': 'My overall design principle is simplicity and ease of use.'
     }
   }
 ];
 
 const mockInterviewSlots: InterviewSlot[] = [
-  { id: 'is1', jobId: 'j1', companyName: 'Arvato Systems', date: '2026-06-15', time: '10:00 AM' },
-  { id: 'is2', jobId: 'j1', companyName: 'Arvato Systems', date: '2026-06-15', time: '11:30 AM', bookedBy: 's1' },
-  { id: 'is3', jobId: 'j1', companyName: 'Arvato Systems', date: '2026-06-16', time: '02:00 PM' },
-  { id: 'is4', jobId: 'j2', companyName: 'Arvato Systems', date: '2026-06-18', time: '10:00 AM' },
-  { id: 'is5', jobId: 'j3', companyName: 'TechCorp Solutions', date: '2026-06-20', time: '09:00 AM', conflictDetected: true }
+  { id: 'is1', jobId: 'j2', companyName: 'IJM Corporation', date: '2026-06-15', time: '10:00 AM' },
+  { id: 'is2', jobId: 'j2', companyName: 'IJM Corporation', date: '2026-06-15', time: '11:30 AM', bookedBy: 's1' },
+  { id: 'is3', jobId: 'j2', companyName: 'IJM Corporation', date: '2026-06-16', time: '02:00 PM' },
+  { id: 'is4', jobId: 'j3', companyName: 'Arvato Systems', date: '2026-06-18', time: '10:00 AM' },
+  { id: 'is5', jobId: 'j4', companyName: 'TechCorp Solutions', date: '2026-06-20', time: '09:00 AM', conflictDetected: true }
 ];
 
 const mockLogbookEntries: LogbookEntry[] = [
@@ -282,19 +294,19 @@ const mockChecklists: Record<string, PlacementChecklist> = {
 };
 
 const mockFacultyStatements: FacultyStatement[] = [
-  { id: 'f1', studentId: 's1', author: 'Dr. Aris', statement: 'Initial review of Julian\'s task assignments confirms deep software engineering alignment. No adjustments required.', timestamp: '2026-06-03 10:00 AM' },
-  { id: 'f2', studentId: 's1', author: 'Puan Aisyah', statement: 'We agree with the academic assessment. Julian is adapting very quickly to our development workflows.', timestamp: '2026-06-04 02:30 PM' }
+  { id: 'f1', studentId: 's1', author: 'Dr. Lim Wei Ming', statement: 'Initial review of John\'s task assignments confirms deep software engineering alignment. No adjustments required.', timestamp: '2026-06-03 10:00 AM' },
+  { id: 'f2', studentId: 's1', author: 'Puan Aisyah', statement: 'We agree with the academic assessment. John is adapting very quickly to our development workflows.', timestamp: '2026-06-04 02:30 PM' }
 ];
 
 const mockBlueprintCommits: BlueprintCommit[] = [
-  { id: 'c1', author: 'Dr. Aris', action: 'Created collaborative workspace & uploaded WIA3001 Syllabus blueprint.', timestamp: '2026-06-01 09:00 AM' },
+  { id: 'c1', author: 'Dr. Lim Wei Ming', action: 'Created collaborative workspace & uploaded WIA3001 Syllabus blueprint.', timestamp: '2026-06-01 09:00 AM' },
   { id: 'c2', author: 'Puan Aisyah', action: 'Modified project alignment details - added React/Typescript scope.', timestamp: '2026-06-02 11:15 AM' }
 ];
 
 const mockSystemLogs: SystemLog[] = [
-  { id: 'sl1', user: 'Puan Siti', action: 'Approved Job Posting "Software Engineer Intern" for Arvato Systems.', timestamp: '2026-06-01 10:00 AM' },
-  { id: 'sl2', user: 'Puan Siti', action: 'Approved Job Posting "UI/UX Designer Intern" for Arvato Systems.', timestamp: '2026-06-02 11:30 AM' },
-  { id: 'sl3', user: 'Puan Siti', action: 'Verified Employer "Arvato Systems" profile status to Credible.', timestamp: '2026-06-01 09:30 AM' }
+  { id: 'sl1', user: 'Puan Siti', action: 'Approved Job Posting "Mobile Developer Intern" for Datum Technology.', timestamp: '2026-06-01 10:00 AM' },
+  { id: 'sl2', user: 'Puan Siti', action: 'Approved Job Posting "Software Intern" for IJM Corporation.', timestamp: '2026-06-02 11:30 AM' },
+  { id: 'sl3', user: 'Puan Siti', action: 'Verified Employer "Datum Technology" profile status to Credible.', timestamp: '2026-06-01 09:30 AM' }
 ];
 
 const mockReviews: StudentReview[] = [
@@ -326,12 +338,59 @@ const mockEmployerFeedbacks: EmployerFeedback[] = [
 const mockEmployerVerifications: Record<string, boolean> = {
   'c_arvato': true,
   'c_techcorp': true,
+  'c_datum': true,
+  'c_ijm': true,
   'c_spam': false
 };
 
+// Seed Users for Authentication
+const SEED_USERS: Record<string, LoggedInUser> = {
+  'john.lim@university.edu.my': {
+    id: 's1',
+    name: 'John Lim',
+    email: 'john.lim@university.edu.my',
+    avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=120',
+    role: 'Student',
+    subText: 'Computer Science • Year 3',
+    details: { matric: '20234567', major: 'Computer Science', year: 'Year 3' }
+  },
+  'sarah.tan@arvato.com': {
+    id: 'hr1',
+    name: 'Sarah Tan',
+    email: 'sarah.tan@arvato.com',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=120',
+    role: 'Employer',
+    subText: 'HR Manager • Arvato Systems',
+    details: { company: 'Arvato Systems', designation: 'HR Manager' }
+  },
+  'lim.weiming@university.edu.my': {
+    id: 'lec1',
+    name: 'Dr. Lim Wei Ming',
+    email: 'lim.weiming@university.edu.my',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120',
+    role: 'Lecturer',
+    subText: 'Faculty of Computing',
+    details: { faculty: 'Faculty of Computing', specialization: 'Software Engineering' }
+  },
+  'siti@university.edu.my': {
+    id: 'cc1',
+    name: 'Puan Siti',
+    email: 'siti@university.edu.my',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?auto=format&fit=crop&q=80&w=120',
+    role: 'CareerCentre',
+    subText: 'Lead Coordinator',
+    details: { department: 'Career Advancement Dept', staffId: 'CC-9012' }
+  }
+};
+
 export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
-  const [currentRole, setCurrentRole] = useState<UserRole>('Student');
-  const [students] = useState<Student[]>(mockStudents);
+  // Authentication states
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [loggedInUser, setLoggedInUser] = useState<LoggedInUser | null>(null);
+  const [currentRole, setCurrentRoleState] = useState<UserRole>('Student');
+  const [activeSubpage, setActiveSubpage] = useState<string>('dashboard');
+
+  const [students, setStudents] = useState<Student[]>(mockStudents);
   const [jobs, setJobs] = useState<Job[]>(mockJobs);
   const [applications, setApplications] = useState<Application[]>(mockApplications);
   const [interviewSlots, setInterviewSlots] = useState<InterviewSlot[]>(mockInterviewSlots);
@@ -346,12 +405,90 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [employerVerifications, setEmployerVerifications] = useState<Record<string, boolean>>(mockEmployerVerifications);
   const [liaisonFlags, setLiaisonFlags] = useState<Record<string, { language: string; lecturerId: string; bannerActive: boolean }>>({});
 
+  const setCurrentRole = (role: UserRole) => {
+    setCurrentRoleState(role);
+    setActiveSubpage('dashboard');
+  };
+
+  // Auth actions
+  const login = (email: string, role: UserRole) => {
+    const cleanEmail = email.toLowerCase().trim();
+    const matchedUser = SEED_USERS[cleanEmail];
+    
+    if (matchedUser && matchedUser.role === role) {
+      setLoggedInUser(matchedUser);
+      setIsAuthenticated(true);
+      setCurrentRole(role);
+      logAction(matchedUser.name, `Logged into the portal as ${role}.`);
+      return true;
+    }
+    
+    // Auto-create dynamically if not seeded
+    const newSessionUser: LoggedInUser = {
+      id: `u_${Date.now()}`,
+      name: email.split('@')[0].replace('.', ' '),
+      email: cleanEmail,
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120',
+      role: role,
+      subText: role + ' User'
+    };
+    
+    setLoggedInUser(newSessionUser);
+    setIsAuthenticated(true);
+    setCurrentRole(role);
+    logAction(newSessionUser.name, `Registered & Logged in as ${role}.`);
+    return true;
+  };
+
+  const logout = () => {
+    if (loggedInUser) {
+      logAction(loggedInUser.name, 'Logged out of the portal.');
+    }
+    setIsAuthenticated(false);
+    setLoggedInUser(null);
+    setActiveSubpage('dashboard');
+  };
+
+  const register = (name: string, email: string, phone: string, role: UserRole, details: Record<string, string>) => {
+    const cleanEmail = email.toLowerCase().trim();
+    const newSessionUser: LoggedInUser = {
+      id: role === 'Student' ? `s${students.length + 1}` : `u_${Date.now()}`,
+      name,
+      email: cleanEmail,
+      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120',
+      role,
+      subText: role === 'Student' ? `${details.major} • ${details.year}` : role === 'Employer' ? `${details.designation} • ${details.company}` : `${details.faculty}`,
+      details
+    };
+
+    if (role === 'Student') {
+      const newStudent: Student = {
+        id: newSessionUser.id,
+        name,
+        email: cleanEmail,
+        phone,
+        cgpa: 3.5, // default starting
+        skills: ['HTML', 'CSS', 'JavaScript'],
+        achievements: ['Portal Registrant'],
+        projects: [],
+        matricNumber: details.matric || '20230000',
+        avatar: newSessionUser.avatar
+      };
+      setStudents(prev => [...prev, newStudent]);
+    }
+
+    setLoggedInUser(newSessionUser);
+    setIsAuthenticated(true);
+    setCurrentRole(role);
+    logAction(name, `Registered new account and logged in as ${role}.`);
+  };
+
   // Action: Add Job
   const addJob = (newJob: Omit<Job, 'id' | 'logo' | 'isApproved' | 'createdAt'>) => {
     const job: Job = {
       ...newJob,
       id: `j${jobs.length + 1}`,
-      logo: '💼',
+      logo: newJob.companyName === 'Datum Technology' ? 'DT' : newJob.companyName === 'IJM Corporation' ? 'IJM' : '💼',
       isApproved: false, // CC must approve
       createdAt: new Date().toISOString().split('T')[0]
     };
@@ -384,6 +521,7 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     videoUrl?: string
   ) => {
     const student = students.find(s => s.id === studentId);
+    const job = jobs.find(j => j.id === jobId);
     const newApp: Application = {
       id: `a${applications.length + 1}`,
       jobId,
@@ -412,7 +550,7 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       }
     }));
 
-    logAction(student?.name || 'Student', `Submitted application for Job ID "${jobId}".`);
+    logAction(student?.name || 'Student', `Submitted application for Job "${job?.title || jobId}".`);
   };
 
   // Action: Withdraw Application
@@ -636,11 +774,14 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setSystemLogs(prev => [newLog, ...prev]); // Prepend for recency
   };
 
-  // Automatically sync audit logs for actions
   return (
     <PortalContext.Provider value={{
+      isAuthenticated,
+      loggedInUser,
       currentRole,
       setCurrentRole,
+      activeSubpage,
+      setActiveSubpage,
       students,
       jobs,
       applications,
@@ -655,6 +796,10 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       employerVerifications,
       liaisonFlags,
       
+      login,
+      logout,
+      register,
+
       addJob,
       approveJob,
       rejectJob,
