@@ -130,6 +130,25 @@ const PortalShell: React.FC = () => {
             </div>
             <span className="header-dropdown-arrow">▼</span>
           </div>
+
+          <button 
+            className="btn btn-secondary" 
+            style={{ 
+              padding: '6px 12px', 
+              fontSize: '12px', 
+              display: 'flex', 
+              alignItems: 'center', 
+              gap: '6px',
+              borderRadius: '8px',
+              cursor: 'pointer',
+              marginLeft: '12px',
+              height: '36px'
+            }} 
+            onClick={logout}
+          >
+            <span>🚪</span>
+            <span>Logout</span>
+          </button>
         </div>
       </header>
 
