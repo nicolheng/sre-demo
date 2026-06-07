@@ -210,6 +210,31 @@ button, input, textarea, select {
   font-size: 18px;
 }
 
+.sidebar-top-section {
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+  flex: 1;
+  margin-bottom: 16px;
+  /* Thin custom scrollbar */
+  scrollbar-width: thin;
+  scrollbar-color: hsla(0, 0%, 100%, 0.15) transparent;
+}
+
+.sidebar-top-section::-webkit-scrollbar {
+  width: 4px;
+}
+
+.sidebar-top-section::-webkit-scrollbar-thumb {
+  background-color: hsla(0, 0%, 100%, 0.15);
+  border-radius: 4px;
+}
+
+.sidebar-bottom-section {
+  margin-top: auto;
+  flex-shrink: 0;
+}
+
 .sidebar-footer {
   border-top: 1px solid hsla(0, 0%, 100%, 0.1);
   padding-top: 16px;
