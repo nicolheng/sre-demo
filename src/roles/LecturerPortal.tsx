@@ -51,6 +51,17 @@ export const LecturerPortal: React.FC = () => {
   // Chat Messenger
   const [chatRecipient, setChatRecipient] = useState('John Lim');
   const [messageInput, setMessageInput] = useState('');
+  // Settings States
+  const [notifyEmail, setNotifyEmail] = useState(true);
+  const [notifyPush, setNotifyPush] = useState(true);
+  const [autoRemind, setAutoRemind] = useState(false);
+  const [calendarSync, setCalendarSync] = useState(false);
+  const [settingsToast, setSettingsToast] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
+
   const [mockChats, setMockChats] = useState<Record<string, { sender: string; text: string; time: string }[]>>({
     'John Lim': [
       { sender: 'You', text: 'Hi John, please ensure your Week 4 log is submitted soon.', time: '1 day ago' },
@@ -680,6 +691,254 @@ export const LecturerPortal: React.FC = () => {
               <input type="text" className="form-input" placeholder="Type message..." style={{ flex: 1 }} value={messageInput} onChange={e => setMessageInput(e.target.value)} />
               <button type="submit" className="btn btn-primary">Send</button>
             </form>
+          </div>
+        </div>
+      )}
+
+      {/* 8. PROFILE SUBPAGE */}
+      {activeSubpage === 'profile' && (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px', width: '100%' }}>
+          {/* Main Info Card */}
+          <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>Lecturer Profile Details</h3>
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '20px' }}>
+              <img 
+                src={loggedInUser?.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120'} 
+                alt="Profile" 
+                className="user-avatar" 
+                style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--color-primary)' }} 
+              />
+              <div>
+                <h4 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text-main)' }}>{lecturerName}</h4>
+                <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: 600 }}>
+                  {loggedInUser?.subText || 'Faculty of Computing'} • Academic Advisor
+                </p>
+                <span className="badge badge-offered" style={{ marginTop: '8px', display: 'inline-block', fontSize: '10px', padding: '3px 8px' }}>
+                  Verified Faculty Advisor
+                </span>
+              </div>
+            </div>
+
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: '20px', borderTop: '1px solid var(--color-border)', paddingTop: '20px' }}>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Faculty / Division</p>
+                <p style={{ fontSize: '15px', fontWeight: 600 }}>{loggedInUser?.details?.faculty || 'Faculty of Computing'}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Specialization Area</p>
+                <p style={{ fontSize: '15px', fontWeight: 600 }}>{loggedInUser?.details?.specialization || 'Software Engineering'}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Registered Email</p>
+                <p style={{ fontSize: '15px', fontWeight: 600 }}>{loggedInUser?.email || 'lim.weiming@university.edu.my'}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Contact Number</p>
+                <p style={{ fontSize: '15px', fontWeight: 600 }}>+60 3-8921 6000</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Office Location</p>
+                <p style={{ fontSize: '15px', fontWeight: 600 }}>Block A, Level 3, Room 302</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', fontWeight: 600, textTransform: 'uppercase', marginBottom: '4px' }}>Supervision Load</p>
+                <p style={{ fontSize: '15px', fontWeight: 600 }}>18 Active Students (2 Direct Supervision)</p>
+              </div>
+            </div>
+          </div>
+
+          {/* Supervised Projects Card */}
+          <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>📚 Active Supervised Student Projects</h3>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              {myStudents.map(student => {
+                const activeApp = applications.find(a => a.studentId === student.id && (a.status === 'Approved' || a.status === 'Interview' || a.status === 'Shortlisted'));
+                const matchingJob = activeApp ? jobs.find(j => j.id === activeApp.jobId) : null;
+                const projectName = student.id === 's1' ? 'AI Notification Management System' : 'Enterprise Web Portal Infrastructure';
+                const progressVal = student.id === 's1' ? '75%' : '40%';
+                const statusBadgeClass = student.id === 's1' ? 'badge-offered' : 'badge-interview';
+                const statusText = student.id === 's1' ? 'On Track' : 'Review Needed';
+
+                return (
+                  <div key={student.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '16px', border: '1px solid var(--color-border)', borderRadius: '8px', backgroundColor: 'var(--color-bg-light, #ffffff)' }}>
+                    <div style={{ display: 'flex', gap: '14px', alignItems: 'center' }}>
+                      <img src={student.avatar} alt={student.name} style={{ width: '44px', height: '44px', borderRadius: '50%', objectFit: 'cover' }} />
+                      <div>
+                        <h4 style={{ fontSize: '15px', fontWeight: 700, margin: '0 0 4px 0' }}>{projectName}</h4>
+                        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: 0 }}>
+                          Student: <strong>{student.name}</strong> ({student.matricNumber}) • Company: <strong>{matchingJob ? matchingJob.companyName : 'Not Placed'}</strong>
+                        </p>
+                      </div>
+                    </div>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '16px' }}>
+                      <div style={{ textAlign: 'right' }}>
+                        <span className={`badge ${statusBadgeClass}`} style={{ fontSize: '10px', padding: '2px 8px' }}>
+                          {statusText}
+                        </span>
+                        <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '4px 0 0 0' }}>
+                          Progress: <strong>{progressVal}</strong>
+                        </p>
+                      </div>
+                      <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '11px' }} onClick={() => { setSelectedStudentId(student.id); setActiveSubpage('students'); }}>
+                        Manage
+                      </button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 9. SETTINGS SUBPAGE */}
+      {activeSubpage === 'settings' && (
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', width: '100%', alignItems: 'start' }}>
+          
+          {/* Notification and Automation Preferences */}
+          <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>⚙️ Portal Preferences & Notifications</h3>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
+              Configure how you receive updates regarding student submissions, compliance status, and system reminders.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Email Notifications</h4>
+                  <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Receive email alerts when students submit logs or messages.</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  checked={notifyEmail} 
+                  onChange={e => setNotifyEmail(e.target.checked)} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Push Web Alerts</h4>
+                  <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Show desktop push notifications for urgent compliance updates.</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  checked={notifyPush} 
+                  onChange={e => setNotifyPush(e.target.checked)} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Automated Student Reminders</h4>
+                  <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Send auto-reminders to students with outstanding unsubmitted weekly logs.</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  checked={autoRemind} 
+                  onChange={e => setAutoRemind(e.target.checked)} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Calendar Sync Integration</h4>
+                  <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Sync scheduled student meetings and site visits to Google Calendar.</p>
+                </div>
+                <button 
+                  className={`btn ${calendarSync ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '6px 14px', fontSize: '11px', borderRadius: '6px' }}
+                  onClick={() => setCalendarSync(!calendarSync)}
+                >
+                  {calendarSync ? '✓ Connected' : 'Connect'}
+                </button>
+              </div>
+            </div>
+
+            <button 
+              className="btn btn-primary" 
+              onClick={() => { 
+                setSettingsToast(true); 
+                setTimeout(() => setSettingsToast(false), 3000); 
+              }} 
+              style={{ width: '100%', marginTop: '24px' }}
+            >
+              Save Preferences
+            </button>
+            {settingsToast && (
+              <p style={{ color: 'var(--status-offered)', fontSize: '12.5px', marginTop: '12px', textAlign: 'center', fontWeight: 600 }}>
+                ✓ System preferences saved successfully.
+              </p>
+            )}
+          </div>
+
+          {/* Account Security (Password Reset) */}
+          <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>🔒 Account Security</h3>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
+              Change your password to maintain account integrity.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="form-group">
+                <span className="form-label" style={{ fontSize: '11px' }}>Current Password:</span>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  value={currentPassword} 
+                  onChange={e => setCurrentPassword(e.target.value)} 
+                  placeholder="••••••••" 
+                  style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <span className="form-label" style={{ fontSize: '11px' }}>New Password:</span>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  value={newPassword} 
+                  onChange={e => setNewPassword(e.target.value)} 
+                  placeholder="••••••••" 
+                  style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <span className="form-label" style={{ fontSize: '11px' }}>Confirm New Password:</span>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  value={confirmPassword} 
+                  onChange={e => setConfirmPassword(e.target.value)} 
+                  placeholder="••••••••" 
+                  style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
+                />
+              </div>
+
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => {
+                  if (!currentPassword || !newPassword || !confirmPassword) {
+                    alert("Please fill in all password fields.");
+                    return;
+                  }
+                  if (newPassword !== confirmPassword) {
+                    alert("New passwords do not match!");
+                    return;
+                  }
+                  alert("Password updated successfully!");
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+                style={{ width: '100%', marginTop: '10px' }}
+              >
+                Update Password
+              </button>
+            </div>
           </div>
         </div>
       )}
