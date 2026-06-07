@@ -97,7 +97,13 @@ export const StudentPortal: React.FC = () => {
   // Settings state
   const [notifyEmail, setNotifyEmail] = useState(true);
   const [notifyPush, setNotifyPush] = useState(true);
+  const [autoRemind, setAutoRemind] = useState(false);
+  const [calendarSync, setCalendarSync] = useState(false);
   const [settingsToast, setSettingsToast] = useState(false);
+
+  const [currentPassword, setCurrentPassword] = useState('');
+  const [newPassword, setNewPassword] = useState('');
+  const [confirmPassword, setConfirmPassword] = useState('');
 
   // Profile Resume & Video Upload simulation states
   const [profileResume, setProfileResume] = useState<string>('John_Lim_CV.pdf');
@@ -1430,20 +1436,153 @@ export const StudentPortal: React.FC = () => {
 
       {/* 11. SETTINGS SUBPAGE */}
       {activeSubpage === 'settings' && (
-        <div className="dashboard-card" style={{ maxWidth: '500px' }}>
-          <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Portal Settings</h3>
-          <div className="form-group" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="form-label">Email Notifications:</span>
-            <input type="checkbox" checked={notifyEmail} onChange={e => setNotifyEmail(e.target.checked)} />
+        <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', width: '100%', alignItems: 'start' }}>
+          
+          {/* Notification and Preferences */}
+          <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>⚙️ Portal Preferences & Notifications</h3>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
+              Configure how you receive updates regarding job matching, interview schedules, and weekly logbook submission statuses.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Email Notifications</h4>
+                  <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Receive email alerts when employers message you or request interviews.</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  checked={notifyEmail} 
+                  onChange={e => setNotifyEmail(e.target.checked)} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Push Web Alerts</h4>
+                  <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Show desktop push notifications for urgent application approvals or portal announcements.</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  checked={notifyPush} 
+                  onChange={e => setNotifyPush(e.target.checked)} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Automated Logbook Reminders</h4>
+                  <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Send auto-alerts to submit your weekly progress on Fridays if pending.</p>
+                </div>
+                <input 
+                  type="checkbox" 
+                  style={{ width: '18px', height: '18px', cursor: 'pointer' }}
+                  checked={autoRemind} 
+                  onChange={e => setAutoRemind(e.target.checked)} 
+                />
+              </div>
+
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingBottom: '12px' }}>
+                <div>
+                  <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Calendar Sync Integration</h4>
+                  <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Sync booked employer interviews and matching sessions to Google Calendar.</p>
+                </div>
+                <button 
+                  className={`btn ${calendarSync ? 'btn-primary' : 'btn-secondary'}`}
+                  style={{ padding: '6px 14px', fontSize: '11px', borderRadius: '6px' }}
+                  onClick={() => setCalendarSync(!calendarSync)}
+                >
+                  {calendarSync ? '✓ Connected' : 'Connect'}
+                </button>
+              </div>
+            </div>
+
+            <button 
+              className="btn btn-primary" 
+              onClick={() => { 
+                setSettingsToast(true); 
+                setTimeout(() => setSettingsToast(false), 3000); 
+              }} 
+              style={{ width: '100%', marginTop: '24px' }}
+            >
+              Save Preferences
+            </button>
+            {settingsToast && (
+              <p style={{ color: 'var(--status-offered)', fontSize: '12.5px', marginTop: '12px', textAlign: 'center', fontWeight: 600 }}>
+                ✓ System preferences saved successfully.
+              </p>
+            )}
           </div>
-          <div className="form-group" style={{ display: 'flex', flexDirection: 'row', justifyContent: 'space-between', alignItems: 'center' }}>
-            <span className="form-label">Push Notifications:</span>
-            <input type="checkbox" checked={notifyPush} onChange={e => setNotifyPush(e.target.checked)} />
+
+          {/* Account Security (Password Reset) */}
+          <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>🔒 Account Security</h3>
+            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
+              Change your password to maintain account integrity.
+            </p>
+            
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+              <div className="form-group">
+                <span className="form-label" style={{ fontSize: '11px' }}>Current Password:</span>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  value={currentPassword} 
+                  onChange={e => setCurrentPassword(e.target.value)} 
+                  placeholder="••••••••" 
+                  style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <span className="form-label" style={{ fontSize: '11px' }}>New Password:</span>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  value={newPassword} 
+                  onChange={e => setNewPassword(e.target.value)} 
+                  placeholder="••••••••" 
+                  style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
+                />
+              </div>
+
+              <div className="form-group">
+                <span className="form-label" style={{ fontSize: '11px' }}>Confirm New Password:</span>
+                <input 
+                  type="password" 
+                  className="form-input" 
+                  value={confirmPassword} 
+                  onChange={e => setConfirmPassword(e.target.value)} 
+                  placeholder="••••••••" 
+                  style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
+                />
+              </div>
+
+              <button 
+                className="btn btn-secondary" 
+                onClick={() => {
+                  if (!currentPassword || !newPassword || !confirmPassword) {
+                    alert("Please fill in all password fields.");
+                    return;
+                  }
+                  if (newPassword !== confirmPassword) {
+                    alert("New passwords do not match!");
+                    return;
+                  }
+                  alert("Password updated successfully!");
+                  setCurrentPassword('');
+                  setNewPassword('');
+                  setConfirmPassword('');
+                }}
+                style={{ width: '100%', marginTop: '10px' }}
+              >
+                Update Password
+              </button>
+            </div>
           </div>
-          <button className="btn btn-primary" onClick={() => { setSettingsToast(true); setTimeout(() => setSettingsToast(false), 2000); }} style={{ width: '100%', marginTop: '16px' }}>
-            Save settings
-          </button>
-          {settingsToast && <p style={{ color: 'var(--status-offered)', fontSize: '12px', marginTop: '10px', textAlign: 'center' }}>✓ Settings saved.</p>}
         </div>
       )}
 

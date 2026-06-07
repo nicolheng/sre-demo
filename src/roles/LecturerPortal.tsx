@@ -570,105 +570,6 @@ export const LecturerPortal: React.FC = () => {
         </div>
       )}
 
-      {/* 6. PROGRESS MONITORING (Visit Planner) SUBPAGE */}
-      {activeSubpage === 'monitoring' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
-            {/* Column 1: Weekly Logbook Submission Trends */}
-            <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
-              <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>📅 Weekly Logbook Submission Trends</h3>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <SVGChart
-                    type="bar"
-                    title="Logbook Submission Rates (%) by Week"
-                    data={[
-                      { label: 'Week 1', value: 95 },
-                      { label: 'Week 2', value: 89 },
-                      { label: 'Week 3', value: 92 },
-                      { label: 'Week 4', value: 84 },
-                      { label: 'Week 5', value: 72 }
-                    ]}
-                  />
-                </div>
-                <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
-                  <p style={{ fontWeight: 600, color: 'var(--color-text-main)', fontSize: '13px', marginBottom: '8px' }}>Submission Trend & Vetting Analysis</p>
-                  <p style={{ margin: '0 0 8px 0' }}>• **Week 5 Submission Rate**: Currently at <strong>72%</strong>. Awaiting 5 student uploads.</p>
-                  <p style={{ margin: '0 0 8px 0' }}>• **Site Visit Relevance**: Use the optimized route planner to schedule field site visits for students with missing logs.</p>
-                  <p style={{ margin: 0 }}>• **Alerts**: Week 4 compliance drop was addressed. Remaining reviews are being vetted.</p>
-                </div>
-              </div>
-            </div>
-
-            {/* Column 2: Company Site Visit Planner */}
-            <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
-              <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>🚗 Global Site Visit Planner</h3>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>
-                Plan routes and select dates to schedule physical supervision visits for matching industry placements.
-              </p>
-              <div className="form-group" style={{ marginBottom: '16px' }}>
-                <span className="form-label">Visit Date:</span>
-                <input type="date" className="form-input" value={visitDate} onChange={e => setVisitDate(e.target.value)} />
-              </div>
-              <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <button
-                  className="btn btn-primary"
-                  onClick={() => {
-                    setVisitToast(`✓ Best travel route calculated for ${visitDate}. Scroll down to see details.`);
-                    setShowRouteItinerary(true);
-                  }}
-                >
-                  Plan Route
-                </button>
-                <button className="btn btn-secondary" onClick={() => setShowRoutes(!showRoutes)}>{showRoutes ? 'Hide' : 'Show'} Proximity Zones</button>
-              </div>
-              {visitToast && <p style={{ color: 'var(--status-offered)', fontSize: '12px', marginBottom: '12px', fontWeight: 600 }}>{visitToast}</p>}
-
-              {showRoutes && (
-                <div style={{ padding: '12px', backgroundColor: '#f8fafc', fontSize: '12px', borderRadius: '6px', borderLeft: '3px solid var(--color-primary)', marginBottom: '16px' }}>
-                  <p style={{ margin: '0 0 6px 0' }}>🗺️ <strong>Zone Alpha:</strong> Datum Tech & TechCorp - Route optimized for postcode 40xxx.</p>
-                  <p style={{ margin: 0 }}>🗺️ <strong>Zone Beta:</strong> IJM Corp - Route optimized for postcode 47xxx.</p>
-                </div>
-              )}
-
-              {showRouteItinerary && (
-                <div style={{ padding: '16px', backgroundColor: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '8px', fontSize: '11.5px' }}>
-                  <h4 style={{ color: 'var(--color-primary)', fontSize: '13px', margin: '0 0 12px 0', fontWeight: 700 }}>🗺️ Best Optimized Site Visit Route for {visitDate}</h4>
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                    <div style={{ borderLeft: '2px solid var(--color-primary)', paddingLeft: '12px', position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: '-5px', top: '2px', backgroundColor: 'var(--color-primary)', width: '8px', height: '8px', borderRadius: '50%' }}></span>
-                      <strong>09:00 AM — University Campus</strong>
-                      <p style={{ margin: '2px 0 0 0', color: 'var(--color-text-muted)' }}>Departing from Faculty of Computing.</p>
-                    </div>
-                    <div style={{ borderLeft: '2px solid var(--color-primary)', paddingLeft: '12px', position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: '-5px', top: '2px', backgroundColor: 'var(--color-primary)', width: '8px', height: '8px', borderRadius: '50%' }}></span>
-                      <strong>09:40 AM — Datum Technology (Kuala Lumpur)</strong>
-                      <p style={{ margin: '2px 0 0 0', color: 'var(--color-text-muted)' }}>Visit student: <strong>John Lim</strong>. Vetting Week 4 logs.</p>
-                    </div>
-                    <div style={{ borderLeft: '2px solid var(--color-primary)', paddingLeft: '12px', position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: '-5px', top: '2px', backgroundColor: 'var(--color-primary)', width: '8px', height: '8px', borderRadius: '50%' }}></span>
-                      <strong>12:00 PM — Lunch & Midday Break</strong>
-                    </div>
-                    <div style={{ borderLeft: '2px solid var(--color-primary)', paddingLeft: '12px', position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: '-5px', top: '2px', backgroundColor: 'var(--color-primary)', width: '8px', height: '8px', borderRadius: '50%' }}></span>
-                      <strong>01:30 PM — IJM Corporation (Petaling Jaya)</strong>
-                      <p style={{ margin: '2px 0 0 0', color: 'var(--color-text-muted)' }}>Visit student: <strong>Maya</strong>. Audit midterm report clearance status.</p>
-                    </div>
-                    <div style={{ paddingLeft: '12px', position: 'relative' }}>
-                      <span style={{ position: 'absolute', left: '-5px', top: '2px', backgroundColor: 'var(--color-primary)', width: '8px', height: '8px', borderRadius: '50%' }}></span>
-                      <strong>03:30 PM — Return to Campus</strong>
-                    </div>
-                  </div>
-                  <div style={{ borderTop: '1px solid #bbf7d0', marginTop: '12px', paddingTop: '8px', fontSize: '11px', color: 'var(--color-text-muted)' }}>
-                    ⚡ <strong>Route optimization metrics:</strong> 38.5 km travel distance | Est. duration 1h 22m. (Zone Alpha ➔ Zone Beta).
-                  </div>
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 7. MESSAGES SUBPAGE */}
       {activeSubpage === 'messages' && (
         <div className="dashboard-card" style={{ height: '500px', display: 'grid', gridTemplateColumns: '200px 1fr', gap: '20px', padding: 0, overflow: 'hidden' }}>
@@ -702,11 +603,11 @@ export const LecturerPortal: React.FC = () => {
           <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
             <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>Lecturer Profile Details</h3>
             <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '20px' }}>
-              <img 
-                src={loggedInUser?.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120'} 
-                alt="Profile" 
-                className="user-avatar" 
-                style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--color-primary)' }} 
+              <img
+                src={loggedInUser?.avatar || 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=120'}
+                alt="Profile"
+                className="user-avatar"
+                style={{ width: '90px', height: '90px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--color-primary)' }}
               />
               <div>
                 <h4 style={{ fontSize: '20px', fontWeight: 700, color: 'var(--color-text-main)' }}>{lecturerName}</h4>
@@ -794,25 +695,25 @@ export const LecturerPortal: React.FC = () => {
       {/* 9. SETTINGS SUBPAGE */}
       {activeSubpage === 'settings' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', width: '100%', alignItems: 'start' }}>
-          
+
           {/* Notification and Automation Preferences */}
           <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
             <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>⚙️ Portal Preferences & Notifications</h3>
             <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
               Configure how you receive updates regarding student submissions, compliance status, and system reminders.
             </p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
                 <div>
                   <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Email Notifications</h4>
                   <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Receive email alerts when students submit logs or messages.</p>
                 </div>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  checked={notifyEmail} 
-                  onChange={e => setNotifyEmail(e.target.checked)} 
+                  checked={notifyEmail}
+                  onChange={e => setNotifyEmail(e.target.checked)}
                 />
               </div>
 
@@ -821,11 +722,11 @@ export const LecturerPortal: React.FC = () => {
                   <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Push Web Alerts</h4>
                   <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Show desktop push notifications for urgent compliance updates.</p>
                 </div>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  checked={notifyPush} 
-                  onChange={e => setNotifyPush(e.target.checked)} 
+                  checked={notifyPush}
+                  onChange={e => setNotifyPush(e.target.checked)}
                 />
               </div>
 
@@ -834,11 +735,11 @@ export const LecturerPortal: React.FC = () => {
                   <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Automated Student Reminders</h4>
                   <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Send auto-reminders to students with outstanding unsubmitted weekly logs.</p>
                 </div>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  checked={autoRemind} 
-                  onChange={e => setAutoRemind(e.target.checked)} 
+                  checked={autoRemind}
+                  onChange={e => setAutoRemind(e.target.checked)}
                 />
               </div>
 
@@ -847,7 +748,7 @@ export const LecturerPortal: React.FC = () => {
                   <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Calendar Sync Integration</h4>
                   <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Sync scheduled student meetings and site visits to Google Calendar.</p>
                 </div>
-                <button 
+                <button
                   className={`btn ${calendarSync ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ padding: '6px 14px', fontSize: '11px', borderRadius: '6px' }}
                   onClick={() => setCalendarSync(!calendarSync)}
@@ -857,12 +758,12 @@ export const LecturerPortal: React.FC = () => {
               </div>
             </div>
 
-            <button 
-              className="btn btn-primary" 
-              onClick={() => { 
-                setSettingsToast(true); 
-                setTimeout(() => setSettingsToast(false), 3000); 
-              }} 
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setSettingsToast(true);
+                setTimeout(() => setSettingsToast(false), 3000);
+              }}
               style={{ width: '100%', marginTop: '24px' }}
             >
               Save Preferences
@@ -880,46 +781,46 @@ export const LecturerPortal: React.FC = () => {
             <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
               Change your password to maintain account integrity.
             </p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="form-group">
                 <span className="form-label" style={{ fontSize: '11px' }}>Current Password:</span>
-                <input 
-                  type="password" 
-                  className="form-input" 
-                  value={currentPassword} 
-                  onChange={e => setCurrentPassword(e.target.value)} 
-                  placeholder="••••••••" 
+                <input
+                  type="password"
+                  className="form-input"
+                  value={currentPassword}
+                  onChange={e => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
                   style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
                 />
               </div>
 
               <div className="form-group">
                 <span className="form-label" style={{ fontSize: '11px' }}>New Password:</span>
-                <input 
-                  type="password" 
-                  className="form-input" 
-                  value={newPassword} 
-                  onChange={e => setNewPassword(e.target.value)} 
-                  placeholder="••••••••" 
+                <input
+                  type="password"
+                  className="form-input"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
                   style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
                 />
               </div>
 
               <div className="form-group">
                 <span className="form-label" style={{ fontSize: '11px' }}>Confirm New Password:</span>
-                <input 
-                  type="password" 
-                  className="form-input" 
-                  value={confirmPassword} 
-                  onChange={e => setConfirmPassword(e.target.value)} 
-                  placeholder="••••••••" 
+                <input
+                  type="password"
+                  className="form-input"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
                   style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
                 />
               </div>
 
-              <button 
-                className="btn btn-secondary" 
+              <button
+                className="btn btn-secondary"
                 onClick={() => {
                   if (!currentPassword || !newPassword || !confirmPassword) {
                     alert("Please fill in all password fields.");
