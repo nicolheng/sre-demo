@@ -20,7 +20,7 @@ export const LecturerPortal: React.FC = () => {
 
   // Selected student for detail review
   const [selectedStudentId, setSelectedStudentId] = useState<string | null>(null);
-  
+
   // Document viewer modal
   const [viewerDoc, setViewerDoc] = useState<{ name: string; type: string } | null>(null);
 
@@ -43,7 +43,7 @@ export const LecturerPortal: React.FC = () => {
   const getLogbookStatusIndicator = (studentId: string, weekNum: number) => {
     const entry = logbookEntries.find(le => le.studentId === studentId && le.weekNumber === weekNum);
     if (!entry) return <span style={{ fontSize: '14px', color: 'var(--status-screening)' }}>🔴</span>; // Missing
-    return entry.isLocked ? 
+    return entry.isLocked ?
       <span style={{ fontSize: '14px', color: 'var(--status-offered)' }}>🟢</span> : // Verified
       <span style={{ fontSize: '14px', color: 'var(--status-interview)' }}>🟡</span>; // Pending verification
   };
@@ -74,7 +74,7 @@ export const LecturerPortal: React.FC = () => {
 
   const hasFreshLogs = (studentId: string) => {
     const logs = logbookEntries.filter(le => le.studentId === studentId);
-    return logs.some(le => !le.isLocked); 
+    return logs.some(le => !le.isLocked);
   };
 
   const handleSendMessage = (e: React.FormEvent) => {
@@ -93,7 +93,7 @@ export const LecturerPortal: React.FC = () => {
       {/* 1. LECTURER DASHBOARD SUBPAGE (Matches Screenshot 4 layout!) */}
       {activeSubpage === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
+
           {/* Top Stats Row (4 cards) */}
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, 1fr)', gap: '16px' }}>
             <div className="dashboard-card" style={{ margin: 0, padding: '16px 20px' }}>
@@ -245,22 +245,22 @@ export const LecturerPortal: React.FC = () => {
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
           {selectedStudentId === null ? (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-              
+
               {/* Weekly Logbook Submission Trends (FR-41) */}
               <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
                 <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>📅 Weekly Logbook Submission Trends</h3>
                 <div style={{ display: 'flex', gap: '24px', alignItems: 'center', flexWrap: 'wrap' }}>
                   <div style={{ flex: 1.5, minWidth: '300px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                    <SVGChart 
-                      type="bar" 
-                      title="Logbook Submission Rates (%) by Week" 
+                    <SVGChart
+                      type="bar"
+                      title="Logbook Submission Rates (%) by Week"
                       data={[
                         { label: 'Week 1', value: 95 },
                         { label: 'Week 2', value: 89 },
                         { label: 'Week 3', value: 92 },
                         { label: 'Week 4', value: 84 },
                         { label: 'Week 5', value: 72 }
-                      ]} 
+                      ]}
                     />
                   </div>
                   <div style={{ flex: 1, minWidth: '240px', fontSize: '12px', color: 'var(--color-text-muted)', borderLeft: '1px solid var(--color-border)', paddingLeft: '24px' }}>
@@ -274,7 +274,7 @@ export const LecturerPortal: React.FC = () => {
 
               {/* Side-by-side: Site Visit Planner & Compliance Grid */}
               <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
-                
+
                 {/* Company Site Visit Planner */}
                 <div className="dashboard-card" style={{ margin: 0, padding: '20px' }}>
                   <h3 style={{ fontSize: '16px', marginBottom: '12px', fontWeight: 700 }}>🚗 Company Site Visit Planner</h3>
@@ -283,25 +283,25 @@ export const LecturerPortal: React.FC = () => {
                     <input type="date" className="form-input" style={{ height: '32px', padding: '4px 8px', fontSize: '12px' }} value={visitDate} onChange={e => setVisitDate(e.target.value)} />
                   </div>
                   <div style={{ display: 'flex', gap: '8px', marginBottom: '12px' }}>
-                    <button 
-                      className="btn btn-primary" 
+                    <button
+                      className="btn btn-primary"
                       style={{ padding: '6px 12px', fontSize: '11px' }}
-                      onClick={() => { 
-                        setVisitToast(`✓ Best travel route calculated for ${visitDate}. Scroll down to see details.`); 
+                      onClick={() => {
+                        setVisitToast(`✓ Best travel route calculated for ${visitDate}. Scroll down to see details.`);
                         setShowRouteItinerary(true);
                       }}
                     >
                       Plan Route
                     </button>
-                    <button 
-                      className="btn btn-secondary" 
+                    <button
+                      className="btn btn-secondary"
                       style={{ padding: '6px 12px', fontSize: '11px' }}
                       onClick={() => setShowRoutes(!showRoutes)}
                     >
                       {showRoutes ? 'Hide' : 'Show'} Proximity Zones
                     </button>
                   </div>
-                  
+
                   {visitToast && (
                     <p style={{ color: 'var(--status-offered)', fontSize: '11.5px', marginBottom: '12px', fontWeight: 600 }}>
                       {visitToast}
@@ -390,8 +390,8 @@ export const LecturerPortal: React.FC = () => {
                     const activeApp = applications.find(a => a.studentId === student.id && (a.status === 'Approved' || a.status === 'Interview' || a.status === 'Shortlisted'));
 
                     return (
-                      <div 
-                        key={student.id} 
+                      <div
+                        key={student.id}
                         className="dashboard-card"
                         style={{ display: 'grid', gridTemplateColumns: 'auto 1fr auto', gap: '20px', alignItems: 'center', margin: 0, padding: '16px 20px' }}
                       >
@@ -420,7 +420,7 @@ export const LecturerPortal: React.FC = () => {
               const activeApp = applications.find(a => a.studentId === student.id && (a.status === 'Approved' || a.status === 'Interview' || a.status === 'Shortlisted' || a.status === 'Awaiting Offer Verification'));
               const matchingJob = activeApp ? jobs.find(j => j.id === activeApp.jobId) : null;
               const companyName = matchingJob ? matchingJob.companyName : 'Not Placed';
-              
+
               return (
                 <div className="dashboard-card slide-up" style={{ margin: 0 }}>
                   <button className="btn btn-secondary" style={{ marginBottom: '16px' }} onClick={() => setSelectedStudentId(null)}>← Back to Student List</button>
@@ -464,20 +464,20 @@ export const LecturerPortal: React.FC = () => {
                         </p>
                         <div className="form-group" style={{ marginBottom: '12px' }}>
                           <span className="form-label" style={{ fontSize: '11px' }}>Visit Date:</span>
-                          <input 
-                            type="date" 
-                            className="form-input" 
+                          <input
+                            type="date"
+                            className="form-input"
                             style={{ height: '30px', padding: '4px 8px', fontSize: '11px' }}
-                            value={studentVisitDates[student.id] || '2026-06-22'} 
-                            onChange={e => setStudentVisitDates({ ...studentVisitDates, [student.id]: e.target.value })} 
+                            value={studentVisitDates[student.id] || '2026-06-22'}
+                            onChange={e => setStudentVisitDates({ ...studentVisitDates, [student.id]: e.target.value })}
                           />
                         </div>
                         <div style={{ display: 'flex', gap: '8px' }}>
-                          <button 
-                            className="btn btn-primary" 
-                            style={{ flex: 1, padding: '6px 12px', fontSize: '11px' }} 
-                            onClick={() => { 
-                              setStudentVisitToasts({ ...studentVisitToasts, [student.id]: `✓ Visit to ${companyName} scheduled on ${studentVisitDates[student.id] || '2026-06-22'}.` }); 
+                          <button
+                            className="btn btn-primary"
+                            style={{ flex: 1, padding: '6px 12px', fontSize: '11px' }}
+                            onClick={() => {
+                              setStudentVisitToasts({ ...studentVisitToasts, [student.id]: `✓ Visit to ${companyName} scheduled on ${studentVisitDates[student.id] || '2026-06-22'}.` });
                               setTimeout(() => {
                                 setStudentVisitToasts(prev => {
                                   const next = { ...prev };
@@ -489,9 +489,9 @@ export const LecturerPortal: React.FC = () => {
                           >
                             Plan Visit
                           </button>
-                          <button 
-                            className="btn btn-secondary" 
-                            style={{ padding: '6px 12px', fontSize: '11px' }} 
+                          <button
+                            className="btn btn-secondary"
+                            style={{ padding: '6px 12px', fontSize: '11px' }}
                             onClick={() => setStudentShowZones({ ...studentShowZones, [student.id]: !studentShowZones[student.id] })}
                           >
                             {studentShowZones[student.id] ? 'Hide' : 'Show'} Route
@@ -568,16 +568,16 @@ export const LecturerPortal: React.FC = () => {
               <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>📅 Weekly Logbook Submission Trends</h3>
               <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-                  <SVGChart 
-                    type="bar" 
-                    title="Logbook Submission Rates (%) by Week" 
+                  <SVGChart
+                    type="bar"
+                    title="Logbook Submission Rates (%) by Week"
                     data={[
                       { label: 'Week 1', value: 95 },
                       { label: 'Week 2', value: 89 },
                       { label: 'Week 3', value: 92 },
                       { label: 'Week 4', value: 84 },
                       { label: 'Week 5', value: 72 }
-                    ]} 
+                    ]}
                   />
                 </div>
                 <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
@@ -600,10 +600,10 @@ export const LecturerPortal: React.FC = () => {
                 <input type="date" className="form-input" value={visitDate} onChange={e => setVisitDate(e.target.value)} />
               </div>
               <div style={{ display: 'flex', gap: '8px', marginBottom: '16px' }}>
-                <button 
-                  className="btn btn-primary" 
-                  onClick={() => { 
-                    setVisitToast(`✓ Best travel route calculated for ${visitDate}. Scroll down to see details.`); 
+                <button
+                  className="btn btn-primary"
+                  onClick={() => {
+                    setVisitToast(`✓ Best travel route calculated for ${visitDate}. Scroll down to see details.`);
                     setShowRouteItinerary(true);
                   }}
                 >
@@ -612,7 +612,7 @@ export const LecturerPortal: React.FC = () => {
                 <button className="btn btn-secondary" onClick={() => setShowRoutes(!showRoutes)}>{showRoutes ? 'Hide' : 'Show'} Proximity Zones</button>
               </div>
               {visitToast && <p style={{ color: 'var(--status-offered)', fontSize: '12px', marginBottom: '12px', fontWeight: 600 }}>{visitToast}</p>}
-              
+
               {showRoutes && (
                 <div style={{ padding: '12px', backgroundColor: '#f8fafc', fontSize: '12px', borderRadius: '6px', borderLeft: '3px solid var(--color-primary)', marginBottom: '16px' }}>
                   <p style={{ margin: '0 0 6px 0' }}>🗺️ <strong>Zone Alpha:</strong> Datum Tech & TechCorp - Route optimized for postcode 40xxx.</p>
