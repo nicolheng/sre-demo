@@ -14,6 +14,7 @@ export const StudentPortal: React.FC = () => {
     interviewSlots,
     logbookEntries,
     reviews,
+    checklists,
     applyForJob,
     withdrawApplication,
     editApplication,
@@ -107,6 +108,7 @@ export const StudentPortal: React.FC = () => {
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [videoUploadProgress, setVideoUploadProgress] = useState<number | null>(null);
   const [jobQuery, setJobQuery] = useState('');
+  const [showUploadSuccessModal, setShowUploadSuccessModal] = useState<{ fileName: string } | null>(null);
 
   const startVideoSimulation = () => {
     setRecordingStatus('counting');
@@ -161,6 +163,10 @@ export const StudentPortal: React.FC = () => {
   const filteredApps = myApps
     .filter(a => statusFilter === 'All' || a.status === statusFilter)
     .sort((a, b) => {
+      // Withdrawn applications are pushed to the bottom
+      if (a.status === 'Withdrawn' && b.status !== 'Withdrawn') return 1;
+      if (a.status !== 'Withdrawn' && b.status === 'Withdrawn') return -1;
+
       const dateA = new Date(a.submissionDate).getTime();
       const dateB = new Date(b.submissionDate).getTime();
       return sortOrder === 'desc' ? dateB - dateA : dateA - dateB;
@@ -190,9 +196,8 @@ export const StudentPortal: React.FC = () => {
   const handleUploadOfferLetter = (appId: string) => {
     if (!uploadedFile) return;
     uploadOfferLetter(appId, uploadedFile);
+    setShowUploadSuccessModal({ fileName: uploadedFile });
     setUploadedFile('');
-    alert('Offer letter uploaded successfully! Placement status transitioned to "Awaiting Offer Verification".');
-    setActiveSubpage('offer-letter');
   };
 
   const handleSaveProfile = (e: React.FormEvent) => {
@@ -487,13 +492,24 @@ export const StudentPortal: React.FC = () => {
                                 </span>
                               </td>
                               <td>
-                                <button
-                                  className="btn btn-primary"
-                                  style={{ padding: '6px 12px', fontSize: '12px' }}
-                                  onClick={() => setSelectedAppId(app.id)}
-                                >
-                                  🔍 Track & Manage
-                                </button>
+                                <div style={{ display: 'flex', gap: '8px' }}>
+                                  <button
+                                    className="btn btn-primary"
+                                    style={{ padding: '6px 12px', fontSize: '12px' }}
+                                    onClick={() => setSelectedAppId(app.id)}
+                                  >
+                                    🔍 Track & Manage
+                                  </button>
+                                  {app.status !== 'Withdrawn' && app.status !== 'Rejected' && (
+                                    <button
+                                      className="btn btn-danger"
+                                      style={{ padding: '6px 12px', fontSize: '12px' }}
+                                      onClick={() => setShowWithdrawModal(app.id)}
+                                    >
+                                      🚫 Withdraw
+                                    </button>
+                                  )}
+                                </div>
                               </td>
                             </tr>
                           );
@@ -643,9 +659,21 @@ export const StudentPortal: React.FC = () => {
                       </p>
                       
                       {app.offerLetterName ? (
-                        <div style={{ backgroundColor: 'var(--color-primary-light)', padding: '12px', borderRadius: '6px', border: '1px solid var(--color-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                          <span style={{ fontSize: '13px', color: 'var(--color-primary)' }}>📄 {app.offerLetterName}</span>
-                          <span className="badge badge-offered">Awaiting Verification</span>
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                          <div style={{ backgroundColor: 'var(--color-primary-light, #eff6ff)', padding: '12px', borderRadius: '6px', border: '1px solid var(--color-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <span style={{ fontSize: '13px', color: 'var(--color-primary)' }}>📄 {app.offerLetterName}</span>
+                            <span className={`badge ${app.status === 'Approved' ? 'badge-offered' : 'badge-interview'}`} style={{ backgroundColor: app.status === 'Approved' ? 'var(--status-offered)' : '' }}>
+                              {app.status === 'Approved' ? 'Verified by Lecturer' : 'Pending Verification'}
+                            </span>
+                          </div>
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '4px' }}>
+                            <button className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '11px' }} onClick={() => setActiveSubpage('offer-letter')}>
+                              ✉️ View Offer Page →
+                            </button>
+                            <span style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>
+                              Status: <strong>{app.status === 'Approved' ? '✅ Verified by Lecturer' : '⏳ Pending'}</strong>
+                            </span>
+                          </div>
                         </div>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
@@ -929,30 +957,168 @@ export const StudentPortal: React.FC = () => {
 
       {/* 7. OFFER LETTER SUBPAGE */}
       {activeSubpage === 'offer-letter' && (
-        <div className="dashboard-card" style={{ maxWidth: '600px', margin: '0 auto' }}>
-          <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Offer Letter & Verification Status</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+          <div>
+            <h3 style={{ fontSize: '20px', fontWeight: 800, fontFamily: 'var(--font-display)', marginBottom: '4px' }}>Offer Letter & Verification Status</h3>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>
+              Check your clearance status for academic relevance, insurance validation, visa clearances, and payment models.
+            </p>
+          </div>
+
           {myApps.filter(a => a.status === 'Offered' || a.status === 'Awaiting Offer Verification' || a.status === 'Approved').map(app => {
             const job = jobs.find(j => j.id === app.jobId);
+            const chk = checklists[app.id] || { insurance: 'Pending', visa: 'Pass', payModel: 'Pending', csRelevance: 'Pending' };
+            const isVerified = app.status === 'Approved';
+
+            const getPillarBadgeStyle = (status: 'Pass' | 'Fail' | 'Pending') => {
+              if (status === 'Pass') return { border: '1px solid #22c55e', backgroundColor: '#f0fdf4', color: '#16a34a' };
+              if (status === 'Fail') return { border: '1px solid #ef4444', backgroundColor: '#fef2f2', color: '#dc2626' };
+              return { border: '1px solid #94a3b8', backgroundColor: '#f1f5f9', color: '#475569' };
+            };
+
             return (
-              <div key={app.id} style={{ border: '1px solid var(--color-border)', borderRadius: '8px', padding: '20px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                <h4 style={{ fontSize: '16px', fontWeight: 700 }}>{job?.companyName}</h4>
-                <p>Status: <span className={`badge badge-${app.status.toLowerCase().replace(/ /g, '-')}`}>{app.status}</span></p>
-                <div style={{ backgroundColor: 'var(--bg-app)', padding: '12px', borderRadius: '6px' }}>
-                  <p style={{ fontSize: '13px' }}><strong>Checklist Clearance Required:</strong></p>
-                  <ul style={{ fontSize: '12px', listStyleType: 'circle', paddingLeft: '20px', marginTop: '6px' }}>
-                    <li>Insurance validation check</li>
-                    <li>Visa status check</li>
-                    <li>Pay model check</li>
-                    <li>CS Academic relevance check</li>
-                  </ul>
+              <div key={app.id} style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {/* Main Overview Panel */}
+                <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px', borderBottom: '1px solid var(--color-border)', paddingBottom: '20px', marginBottom: '20px' }}>
+                    <div>
+                      <span style={{ fontSize: '12px', color: 'var(--color-primary)', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Corporate Placement Offer</span>
+                      <h4 style={{ fontSize: '22px', fontWeight: 800, margin: '4px 0 6px 0' }}>{job?.companyName}</h4>
+                      <p style={{ fontSize: '14px', color: 'var(--color-text-muted)' }}>
+                        Position: <strong>{job?.title}</strong> • Duration: <strong>{job?.duration}</strong>
+                      </p>
+                    </div>
+
+                    <div style={{ textAlign: 'right' }}>
+                      <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>Lecturer Review Status</span>
+                      <span 
+                        className={`badge`} 
+                        style={{ 
+                          fontSize: '13px', 
+                          padding: '6px 16px', 
+                          borderRadius: '20px',
+                          fontWeight: 700,
+                          backgroundColor: isVerified ? 'var(--status-offered)' : '#fef3c7',
+                          color: isVerified ? '#ffffff' : '#b45309',
+                          border: isVerified ? 'none' : '1px solid #f59e0b'
+                        }}
+                      >
+                        {isVerified ? '✅ Verified by Lecturer' : '⏳ Pending Vetting'}
+                      </span>
+                    </div>
+                  </div>
+
+                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', flexWrap: 'wrap', gap: '16px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                      <span style={{ fontSize: '28px' }}>📄</span>
+                      <div>
+                        <p style={{ fontSize: '14px', fontWeight: 600, margin: 0 }}>{app.offerLetterName || 'Offer_Letter_Document.pdf'}</p>
+                        <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>Uploaded on {app.submissionDate}</p>
+                      </div>
+                    </div>
+                    <button className="btn btn-secondary" style={{ padding: '8px 16px', fontSize: '12px' }} onClick={() => setActiveSubpage('applications')}>
+                      ⚙️ Manage Document / Re-upload
+                    </button>
+                  </div>
+                </div>
+
+                {/* Checklist Clearance Matrix */}
+                <div>
+                  <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '14px' }}>Clearance Checklist Pillars</h4>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
+                    
+                    {/* CS Academic Relevance */}
+                    <div className="dashboard-card" style={{ margin: 0, padding: '16px', border: '1px solid var(--color-border)', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <span style={{ fontSize: '24px' }}>🎓</span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', ...getPillarBadgeStyle(chk.csRelevance) }}>
+                            {chk.csRelevance}
+                          </span>
+                        </div>
+                        <h5 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 6px 0' }}>Academic Core Relevance</h5>
+                        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: '1.4', margin: 0 }}>
+                          Evaluates if the job scope and daily tech tasks align with the university Computer Science curriculum standards.
+                        </p>
+                      </div>
+                      <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid var(--color-border)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                        <strong>Feedback:</strong> {chk.csRelevance === 'Pass' ? 'Software engineering tasks mapped directly.' : 'Awaiting advisor syllabus confirmation review.'}
+                      </div>
+                    </div>
+
+                    {/* Pay Model Check */}
+                    <div className="dashboard-card" style={{ margin: 0, padding: '16px', border: '1px solid var(--color-border)', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <span style={{ fontSize: '24px' }}>💵</span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', ...getPillarBadgeStyle(chk.payModel) }}>
+                            {chk.payModel}
+                          </span>
+                        </div>
+                        <h5 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 6px 0' }}>Stipend & Pay Model Check</h5>
+                        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: '1.4', margin: 0 }}>
+                          Ensures basic allowance conditions are met and compliant with the university's RM 1,000 minimum stipend guidelines.
+                        </p>
+                      </div>
+                      <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid var(--color-border)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                        <strong>Feedback:</strong> {chk.payModel === 'Pass' ? 'Monthly basic stipend verified.' : 'Awaiting confirmation of monthly allowance terms.'}
+                      </div>
+                    </div>
+
+                    {/* Insurance validation */}
+                    <div className="dashboard-card" style={{ margin: 0, padding: '16px', border: '1px solid var(--color-border)', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <span style={{ fontSize: '24px' }}>🛡️</span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', ...getPillarBadgeStyle(chk.insurance) }}>
+                            {chk.insurance}
+                          </span>
+                        </div>
+                        <h5 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 6px 0' }}>Insurance Coverage Validation</h5>
+                        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: '1.4', margin: 0 }}>
+                          Confirms the student is covered under group medical and workplace hazard liability policies.
+                        </p>
+                      </div>
+                      <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid var(--color-border)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                        <strong>Feedback:</strong> {chk.insurance === 'Pass' ? 'Group policy coverage certified.' : 'Awaiting employer insurance verification certificate.'}
+                      </div>
+                    </div>
+
+                    {/* Visa & Work Clearances */}
+                    <div className="dashboard-card" style={{ margin: 0, padding: '16px', border: '1px solid var(--color-border)', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
+                      <div>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                          <span style={{ fontSize: '24px' }}>🛂</span>
+                          <span style={{ fontSize: '11px', fontWeight: 700, padding: '3px 8px', borderRadius: '4px', ...getPillarBadgeStyle(chk.visa) }}>
+                            {chk.visa}
+                          </span>
+                        </div>
+                        <h5 style={{ fontSize: '14px', fontWeight: 700, margin: '0 0 6px 0' }}>Visa & Workplace Clearance</h5>
+                        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', lineHeight: '1.4', margin: 0 }}>
+                          Verifies work permits or visa documentation compliance, essential for international placement permissions.
+                        </p>
+                      </div>
+                      <div style={{ marginTop: '12px', paddingTop: '8px', borderTop: '1px solid var(--color-border)', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                        <strong>Feedback:</strong> {chk.visa === 'Pass' ? 'Work permissions cleared.' : 'Awaiting international clearance validation.'}
+                      </div>
+                    </div>
+
+                  </div>
                 </div>
               </div>
             );
           })}
+
           {myApps.filter(a => a.status === 'Offered' || a.status === 'Awaiting Offer Verification' || a.status === 'Approved').length === 0 && (
-            <p style={{ fontStyle: 'italic', color: 'var(--color-text-muted)', textAlign: 'center', padding: '32px' }}>
-              No offer letters uploaded or pending yet.
-            </p>
+            <div className="dashboard-card" style={{ textAlign: 'center', padding: '48px 24px', margin: 0 }}>
+              <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>✉️</span>
+              <p style={{ fontStyle: 'italic', color: 'var(--color-text-muted)', fontSize: '14px', margin: '0 0 16px 0' }}>
+                No offer letters uploaded or pending yet.
+              </p>
+              <button className="btn btn-primary" onClick={() => setActiveSubpage('applications')} style={{ fontSize: '12px' }}>
+                Go to Applications to Upload
+              </button>
+            </div>
           )}
         </div>
       )}
@@ -1394,6 +1560,37 @@ export const StudentPortal: React.FC = () => {
             <div className="modal-buttons">
               <button className="btn btn-secondary" onClick={() => setApplyJobFlow(null)}>Cancel</button>
               <button className="btn btn-primary" onClick={() => handleApply(applyJobFlow)}>Submit</button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {showUploadSuccessModal && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '450px', textAlign: 'center', padding: '32px 24px' }}>
+            <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🎉</span>
+            <h3 className="modal-title" style={{ fontSize: '20px', fontWeight: 700, marginBottom: '12px' }}>Offer Submitted Successfully!</h3>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', lineHeight: '1.5', marginBottom: '24px' }}>
+              Your offer letter <strong>{showUploadSuccessModal.fileName}</strong> has been successfully uploaded. The placement status is updated to <strong>"Awaiting Verification"</strong> pending lecturer review.
+            </p>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+              <button 
+                className="btn btn-primary" 
+                style={{ width: '100%', padding: '10px 0', fontSize: '12px', fontWeight: 600 }}
+                onClick={() => {
+                  setShowUploadSuccessModal(null);
+                  setActiveSubpage('offer-letter');
+                }}
+              >
+                ✉️ Go to Offer Verification Page
+              </button>
+              <button 
+                className="btn btn-secondary" 
+                style={{ width: '100%', padding: '10px 0', fontSize: '12px' }}
+                onClick={() => setShowUploadSuccessModal(null)}
+              >
+                Keep Tracking Here
+              </button>
             </div>
           </div>
         </div>
