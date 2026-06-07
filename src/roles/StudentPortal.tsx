@@ -44,7 +44,7 @@ export const StudentPortal: React.FC = () => {
   const [sop, setSop] = useState('');
   const [screeningAnswers, setScreeningAnswers] = useState<Record<string, string>>({});
   const [videoUrl, setVideoUrl] = useState('');
-  
+
   // Logbook form state
   const [hours, setHours] = useState<number>(8);
   const [tasks, setTasks] = useState('');
@@ -113,7 +113,7 @@ export const StudentPortal: React.FC = () => {
   const startVideoSimulation = () => {
     setRecordingStatus('counting');
     setCountdown(3);
-    
+
     let count = 3;
     const countInterval = setInterval(() => {
       count -= 1;
@@ -123,7 +123,7 @@ export const StudentPortal: React.FC = () => {
         clearInterval(countInterval);
         setRecordingStatus('recording');
         setRecordSeconds(0);
-        
+
         let secs = 0;
         const recInterval = setInterval(() => {
           secs += 1;
@@ -175,7 +175,7 @@ export const StudentPortal: React.FC = () => {
   // Calculate logbook progress
   const loggedWeeks = logbookEntries.filter(le => le.studentId === studentId);
   const totalHours = loggedWeeks.reduce((sum, entry) => sum + entry.workingHours, 0);
-  const progressPercent = Math.min(Math.round((totalHours / 120) * 100), 100); 
+  const progressPercent = Math.min(Math.round((totalHours / 120) * 100), 100);
 
   const handleApply = (job: Job) => {
     applyForJob(job.id, studentId, sop, screeningAnswers, videoUrl);
@@ -225,7 +225,7 @@ export const StudentPortal: React.FC = () => {
       {/* 1. DASHBOARD SUBPAGE (Matches Screenshot 2 layout!) */}
       {activeSubpage === 'dashboard' && (
         <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
-          
+
           {/* Top Row: Welcome Card + Quick Actions */}
           <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
             {/* Student Profile Card */}
@@ -237,8 +237,8 @@ export const StudentPortal: React.FC = () => {
                 <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
                   {loggedInUser?.subText || 'Computer Science • Year 3'} • Student ID: {currentStudent?.matricNumber}
                 </p>
-                <button 
-                  onClick={() => setActiveSubpage('profile')} 
+                <button
+                  onClick={() => setActiveSubpage('profile')}
                   style={{ background: 'none', border: 'none', color: 'var(--color-primary)', fontWeight: 'bold', fontSize: '13px', cursor: 'pointer', marginTop: '12px', padding: 0 }}
                 >
                   View Profile →
@@ -565,11 +565,11 @@ export const StudentPortal: React.FC = () => {
                     return (
                       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
                         {filteredSuggestions.map(job => {
-                          const hasMatchingTags = job.specializationTags.some(tag => 
+                          const hasMatchingTags = job.specializationTags.some(tag =>
                             currentStudent?.skills.some(skill => skill.toLowerCase().includes(tag.toLowerCase()))
                           );
                           const alreadyApplied = myApps.some(a => a.jobId === job.id && a.status !== 'Withdrawn');
-                          
+
                           return (
                             <div key={job.id} className={`dashboard-card ${hasMatchingTags ? 'recommend-card-gold' : ''}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0, border: '1px solid var(--color-border)', borderRadius: '12px', padding: '16px', cursor: 'pointer' }} onClick={() => setViewJobModal(job)}>
                               <div>
@@ -580,7 +580,7 @@ export const StudentPortal: React.FC = () => {
                                 <h4 style={{ fontSize: '15px', fontWeight: 'bold', margin: '0 0 4px 0' }}>{job.title}</h4>
                                 <p style={{ color: 'var(--color-primary)', fontSize: '13px', fontWeight: 600, margin: '0 0 8px 0' }}>{job.companyName}</p>
                                 <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: '1.4', margin: 0 }}>{job.scope.length > 120 ? `${job.scope.slice(0, 120)}...` : job.scope}</p>
-                                
+
                                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '10px' }}>
                                   {job.requiredSkills.slice(0, 3).map(skill => (
                                     <span key={skill} style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: 'var(--color-primary-light, #eff6ff)', color: 'var(--color-primary)', borderRadius: '4px' }}>
@@ -597,8 +597,8 @@ export const StudentPortal: React.FC = () => {
 
                               <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
                                 <button className="btn btn-secondary" style={{ flex: 1, padding: '6px 0', fontSize: '11px' }} onClick={(e) => { e.stopPropagation(); setViewJobModal(job); }}>Details</button>
-                                <button 
-                                  className="btn btn-primary" 
+                                <button
+                                  className="btn btn-primary"
                                   style={{ flex: 1, padding: '6px 0', fontSize: '11px' }}
                                   onClick={(e) => { e.stopPropagation(); setApplyJobFlow(job); }}
                                   disabled={alreadyApplied}
@@ -621,7 +621,7 @@ export const StudentPortal: React.FC = () => {
               if (!app) return null;
               const job = jobs.find(j => j.id === app.jobId);
               const isBeforeDeadline = new Date().getTime() < new Date(job?.deadline || '').getTime();
-              
+
               return (
                 <div className="dashboard-card slide-up">
                   <button className="btn btn-secondary" style={{ marginBottom: '16px' }} onClick={() => setSelectedAppId(null)}>
@@ -657,7 +657,7 @@ export const StudentPortal: React.FC = () => {
                       <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>
                         Restrict formats strictly to PDF, PNG, and JPEG files up to 10MB.
                       </p>
-                      
+
                       {app.offerLetterName ? (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                           <div style={{ backgroundColor: 'var(--color-primary-light, #eff6ff)', padding: '12px', borderRadius: '6px', border: '1px solid var(--color-primary)', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
@@ -677,9 +677,9 @@ export const StudentPortal: React.FC = () => {
                         </div>
                       ) : (
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                          <input 
-                            type="file" 
-                            accept=".pdf,.png,.jpg,.jpeg" 
+                          <input
+                            type="file"
+                            accept=".pdf,.png,.jpg,.jpeg"
                             style={{ display: 'none' }}
                             id="offer-upload"
                             onChange={(e) => {
@@ -689,14 +689,14 @@ export const StudentPortal: React.FC = () => {
                               }
                             }}
                           />
-                          <label 
-                            htmlFor="offer-upload" 
+                          <label
+                            htmlFor="offer-upload"
                             style={{ border: '2px dashed var(--color-border)', borderRadius: '6px', padding: '24px', textAlign: 'center', cursor: 'pointer', display: 'block', backgroundColor: 'var(--bg-app)' }}
                           >
                             {uploadedFile ? `Selected: ${uploadedFile}` : 'Click to Browse (Simulated PDF/PNG/JPEG)'}
                           </label>
-                          <button 
-                            className="btn btn-primary" 
+                          <button
+                            className="btn btn-primary"
                             onClick={() => handleUploadOfferLetter(app.id)}
                             disabled={!uploadedFile}
                           >
@@ -818,7 +818,7 @@ export const StudentPortal: React.FC = () => {
       {activeSubpage === 'interviews' && (
         <div>
           <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Book Interview Timeslots</h3>
-          
+
           <div className="form-grid">
             <div className="dashboard-card" style={{ margin: 0 }}>
               <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>📅 Available Slots</h4>
@@ -829,8 +829,8 @@ export const StudentPortal: React.FC = () => {
                       <h4 style={{ fontSize: '14px', fontWeight: 600 }}>{slot.companyName}</h4>
                       <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Date: {slot.date} at {slot.time}</p>
                     </div>
-                    <button 
-                      className="btn btn-primary" 
+                    <button
+                      className="btn btn-primary"
                       style={{ padding: '6px 12px', fontSize: '12px' }}
                       onClick={() => {
                         bookInterviewSlot(slot.id, studentId);
@@ -875,13 +875,13 @@ export const StudentPortal: React.FC = () => {
               <div style={{ position: 'relative', width: '130px', height: '130px' }}>
                 <svg width="100%" height="100%" viewBox="0 0 40 40">
                   <circle cx="20" cy="20" r="15.915" fill="transparent" stroke="#f1f5f9" strokeWidth="3" />
-                  <circle 
-                    cx="20" 
-                    cy="20" 
-                    r="15.915" 
-                    fill="transparent" 
-                    stroke="var(--color-primary)" 
-                    strokeWidth="3" 
+                  <circle
+                    cx="20"
+                    cy="20"
+                    r="15.915"
+                    fill="transparent"
+                    stroke="var(--color-primary)"
+                    strokeWidth="3"
                     strokeDasharray={`${progressPercent} ${100 - progressPercent}`}
                     strokeDashoffset="25"
                     strokeLinecap="round"
@@ -895,10 +895,10 @@ export const StudentPortal: React.FC = () => {
               </div>
               <p style={{ fontSize: '14px' }}>Logged <strong>{totalHours}</strong> / 120 required placement hours.</p>
             </div>
-            
+
             <div style={{ borderTop: '1px solid var(--color-border)', marginTop: '24px', paddingTop: '20px' }}>
               <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>📝 Log Weekly Progress</h4>
-              
+
               <div className="form-group">
                 <span className="form-label">Hours Worked this Week:</span>
                 <input type="number" className="form-input" value={hours} onChange={e => setHours(Number(e.target.value))} min={1} max={80} />
@@ -914,8 +914,8 @@ export const StudentPortal: React.FC = () => {
                 <input type="text" className="form-input" placeholder="e.g. Mastered local state hooks, drafted CSS" value={milestone} onChange={e => setMilestone(e.target.value)} />
               </div>
 
-              <button 
-                className="btn btn-primary" 
+              <button
+                className="btn btn-primary"
                 style={{ width: '100%' }}
                 onClick={() => {
                   if (!tasks || !milestone) return;
@@ -928,7 +928,7 @@ export const StudentPortal: React.FC = () => {
               >
                 Submit Weekly Entry
               </button>
-              
+
               {showLogToast && (
                 <div style={{ backgroundColor: 'var(--status-offered)', color: 'white', padding: '10px', borderRadius: '4px', fontSize: '12px', marginTop: '12px', textAlign: 'center' }}>
                   ✓ Logbook entry saved successfully!
@@ -991,11 +991,11 @@ export const StudentPortal: React.FC = () => {
 
                     <div style={{ textAlign: 'right' }}>
                       <span style={{ fontSize: '12px', color: 'var(--color-text-muted)', display: 'block', marginBottom: '4px' }}>Lecturer Review Status</span>
-                      <span 
-                        className={`badge`} 
-                        style={{ 
-                          fontSize: '13px', 
-                          padding: '6px 16px', 
+                      <span
+                        className={`badge`}
+                        style={{
+                          fontSize: '13px',
+                          padding: '6px 16px',
                           borderRadius: '20px',
                           fontWeight: 700,
                           backgroundColor: isVerified ? 'var(--status-offered)' : '#fef3c7',
@@ -1026,7 +1026,7 @@ export const StudentPortal: React.FC = () => {
                 <div>
                   <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '14px' }}>Clearance Checklist Pillars</h4>
                   <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '16px' }}>
-                    
+
                     {/* CS Academic Relevance */}
                     <div className="dashboard-card" style={{ margin: 0, padding: '16px', border: '1px solid var(--color-border)', borderRadius: '12px', display: 'flex', flexDirection: 'column', justifyContent: 'space-between' }}>
                       <div>
@@ -1167,8 +1167,8 @@ export const StudentPortal: React.FC = () => {
                   <label htmlFor="anon" style={{ fontSize: '13px', cursor: 'pointer' }}>Anonymize my review</label>
                 </div>
 
-                <button 
-                  className="btn btn-primary" 
+                <button
+                  className="btn btn-primary"
                   style={{ width: '100%' }}
                   onClick={() => {
                     submitReview(studentId, selectedCompany.id, selectedCompany.name, { overall: ratingOverall, culture: ratingCulture, learning: ratingLearning }, reviewText, anonymize);
@@ -1206,8 +1206,8 @@ export const StudentPortal: React.FC = () => {
           <div style={{ borderRight: '1px solid var(--color-border)', padding: '20px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
             <h4 style={{ fontSize: '14px', fontWeight: 700, marginBottom: '10px' }}>Contacts</h4>
             {Object.keys(mockChats).map(contact => (
-              <button 
-                key={contact} 
+              <button
+                key={contact}
                 className={`btn ${chatRecipient === contact ? 'btn-primary' : 'btn-secondary'}`}
                 style={{ justifyContent: 'flex-start', padding: '10px', borderRadius: '8px', fontSize: '12px' }}
                 onClick={() => setChatRecipient(contact)}
@@ -1235,10 +1235,10 @@ export const StudentPortal: React.FC = () => {
 
             {/* Chat Input */}
             <form onSubmit={handleSendMessage} style={{ padding: '20px', borderTop: '1px solid var(--color-border)', display: 'flex', gap: '10px' }}>
-              <input 
-                type="text" 
-                className="form-input" 
-                placeholder="Type your message..." 
+              <input
+                type="text"
+                className="form-input"
+                placeholder="Type your message..."
                 style={{ flex: 1 }}
                 value={messageInput}
                 onChange={e => setMessageInput(e.target.value)}
@@ -1262,7 +1262,7 @@ export const StudentPortal: React.FC = () => {
                 <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Matric ID: {currentStudent.matricNumber} | Year: Year 3</p>
               </div>
             </div>
-            
+
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
               <div>
                 <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Academic Record</p>
@@ -1303,7 +1303,7 @@ export const StudentPortal: React.FC = () => {
                 </div>
               </div>
             ) : (
-              <div 
+              <div
                 onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
                 onDragLeave={() => setIsDragOver(false)}
                 onDrop={(e) => {
@@ -1313,12 +1313,12 @@ export const StudentPortal: React.FC = () => {
                     setProfileResume(e.dataTransfer.files[0].name);
                   }
                 }}
-                style={{ 
-                  border: isDragOver ? '2px dashed var(--color-primary)' : '2px dashed var(--color-border)', 
+                style={{
+                  border: isDragOver ? '2px dashed var(--color-primary)' : '2px dashed var(--color-border)',
                   backgroundColor: isDragOver ? 'var(--color-primary-light, #eff6ff)' : 'transparent',
-                  borderRadius: '8px', 
-                  padding: '24px', 
-                  textAlign: 'center', 
+                  borderRadius: '8px',
+                  padding: '24px',
+                  textAlign: 'center',
                   cursor: 'pointer',
                   transition: 'all 0.2s ease-in-out'
                 }}
@@ -1327,11 +1327,11 @@ export const StudentPortal: React.FC = () => {
                 <span style={{ fontSize: '32px', display: 'block', marginBottom: '8px' }}>📤</span>
                 <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 4px 0' }}>Drag & drop your resume here, or <span style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>browse files</span></p>
                 <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>Supports PDF, DOCX (Max 5MB)</p>
-                <input 
-                  type="file" 
-                  id="resume-file-input" 
-                  accept=".pdf,.docx,.doc" 
-                  style={{ display: 'none' }} 
+                <input
+                  type="file"
+                  id="resume-file-input"
+                  accept=".pdf,.docx,.doc"
+                  style={{ display: 'none' }}
                   onChange={(e) => {
                     if (e.target.files && e.target.files[0]) {
                       setProfileResume(e.target.files[0].name);
@@ -1373,10 +1373,10 @@ export const StudentPortal: React.FC = () => {
             ) : profileVideo ? (
               <div>
                 <div style={{ position: 'relative', width: '100%', borderRadius: '8px', overflow: 'hidden', backgroundColor: 'black', marginBottom: '16px' }}>
-                  <video 
-                    src={profileVideo} 
-                    controls 
-                    style={{ width: '100%', display: 'block', maxHeight: '280px' }} 
+                  <video
+                    src={profileVideo}
+                    controls
+                    style={{ width: '100%', display: 'block', maxHeight: '280px' }}
                   />
                   {recordingStatus === 'finished' && (
                     <div style={{ position: 'absolute', top: '12px', left: '12px', backgroundColor: 'var(--status-offered)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '4px 8px', borderRadius: '4px', zIndex: 10 }}>
@@ -1453,10 +1453,10 @@ export const StudentPortal: React.FC = () => {
           <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Available Internship Postings</h3>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
             {jobs.filter(j => j.isApproved).map(job => {
-              const hasMatchingTags = job.specializationTags.some(tag => 
+              const hasMatchingTags = job.specializationTags.some(tag =>
                 currentStudent?.skills.some(skill => skill.toLowerCase().includes(tag.toLowerCase()))
               );
-              
+
               return (
                 <div key={job.id} className={`dashboard-card ${hasMatchingTags ? 'recommend-card-gold' : ''}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0, cursor: 'pointer' }} onClick={() => setViewJobModal(job)}>
                   {hasMatchingTags && <span className="recommend-badge">⭐ Recommended Match</span>}
@@ -1472,8 +1472,8 @@ export const StudentPortal: React.FC = () => {
 
                   <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
                     <button className="btn btn-secondary" style={{ flex: 1, padding: '8px 0', fontSize: '12px' }} onClick={(e) => { e.stopPropagation(); setViewJobModal(job); }}>View Details</button>
-                    <button 
-                      className="btn btn-primary" 
+                    <button
+                      className="btn btn-primary"
                       style={{ flex: 1, padding: '8px 0', fontSize: '12px' }}
                       onClick={(e) => { e.stopPropagation(); setApplyJobFlow(job); }}
                       disabled={myApps.some(a => a.jobId === job.id && a.status !== 'Withdrawn')}
@@ -1574,8 +1574,8 @@ export const StudentPortal: React.FC = () => {
               Your offer letter <strong>{showUploadSuccessModal.fileName}</strong> has been successfully uploaded. The placement status is updated to <strong>"Awaiting Verification"</strong> pending lecturer review.
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-              <button 
-                className="btn btn-primary" 
+              <button
+                className="btn btn-primary"
                 style={{ width: '100%', padding: '10px 0', fontSize: '12px', fontWeight: 600 }}
                 onClick={() => {
                   setShowUploadSuccessModal(null);
@@ -1584,8 +1584,8 @@ export const StudentPortal: React.FC = () => {
               >
                 ✉️ Go to Offer Verification Page
               </button>
-              <button 
-                className="btn btn-secondary" 
+              <button
+                className="btn btn-secondary"
                 style={{ width: '100%', padding: '10px 0', fontSize: '12px' }}
                 onClick={() => setShowUploadSuccessModal(null)}
               >
