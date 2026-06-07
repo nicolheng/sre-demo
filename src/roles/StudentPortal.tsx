@@ -555,7 +555,7 @@ export const StudentPortal: React.FC = () => {
                           const alreadyApplied = myApps.some(a => a.jobId === job.id && a.status !== 'Withdrawn');
                           
                           return (
-                            <div key={job.id} className={`dashboard-card ${hasMatchingTags ? 'recommend-card-gold' : ''}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0, border: '1px solid var(--color-border)', borderRadius: '12px', padding: '16px' }}>
+                            <div key={job.id} className={`dashboard-card ${hasMatchingTags ? 'recommend-card-gold' : ''}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0, border: '1px solid var(--color-border)', borderRadius: '12px', padding: '16px', cursor: 'pointer' }} onClick={() => setViewJobModal(job)}>
                               <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
                                   <span style={{ fontSize: '24px' }}>🏢</span>
@@ -580,11 +580,11 @@ export const StudentPortal: React.FC = () => {
                               </div>
 
                               <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
-                                <button className="btn btn-secondary" style={{ flex: 1, padding: '6px 0', fontSize: '11px' }} onClick={() => setViewJobModal(job)}>Details</button>
+                                <button className="btn btn-secondary" style={{ flex: 1, padding: '6px 0', fontSize: '11px' }} onClick={(e) => { e.stopPropagation(); setViewJobModal(job); }}>Details</button>
                                 <button 
                                   className="btn btn-primary" 
                                   style={{ flex: 1, padding: '6px 0', fontSize: '11px' }}
-                                  onClick={() => setApplyJobFlow(job)}
+                                  onClick={(e) => { e.stopPropagation(); setApplyJobFlow(job); }}
                                   disabled={alreadyApplied}
                                 >
                                   {alreadyApplied ? '✓ Applied' : 'Apply Now'}
@@ -1292,7 +1292,7 @@ export const StudentPortal: React.FC = () => {
               );
               
               return (
-                <div key={job.id} className={`dashboard-card ${hasMatchingTags ? 'recommend-card-gold' : ''}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0 }}>
+                <div key={job.id} className={`dashboard-card ${hasMatchingTags ? 'recommend-card-gold' : ''}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0, cursor: 'pointer' }} onClick={() => setViewJobModal(job)}>
                   {hasMatchingTags && <span className="recommend-badge">⭐ Recommended Match</span>}
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
@@ -1305,11 +1305,11 @@ export const StudentPortal: React.FC = () => {
                   </div>
 
                   <div style={{ display: 'flex', gap: '8px', marginTop: '20px' }}>
-                    <button className="btn btn-secondary" style={{ flex: 1, padding: '8px 0', fontSize: '12px' }} onClick={() => setViewJobModal(job)}>View Details</button>
+                    <button className="btn btn-secondary" style={{ flex: 1, padding: '8px 0', fontSize: '12px' }} onClick={(e) => { e.stopPropagation(); setViewJobModal(job); }}>View Details</button>
                     <button 
                       className="btn btn-primary" 
                       style={{ flex: 1, padding: '8px 0', fontSize: '12px' }}
-                      onClick={() => setApplyJobFlow(job)}
+                      onClick={(e) => { e.stopPropagation(); setApplyJobFlow(job); }}
                       disabled={myApps.some(a => a.jobId === job.id && a.status !== 'Withdrawn')}
                     >
                       {myApps.some(a => a.jobId === job.id && a.status !== 'Withdrawn') ? 'Applied' : 'Apply Now'}
