@@ -788,6 +788,15 @@ button, input, textarea, select {
   animation: slideUp var(--transition-normal) forwards;
 }
 
+@keyframes pulse {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 1; }
+}
+
+.pulse {
+  animation: pulse 1.5s infinite ease-in-out;
+}
+
 /* Table Design */
 .data-table {
   width: 100%;

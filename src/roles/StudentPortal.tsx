@@ -98,6 +98,62 @@ export const StudentPortal: React.FC = () => {
   const [notifyPush, setNotifyPush] = useState(true);
   const [settingsToast, setSettingsToast] = useState(false);
 
+  // Profile Resume & Video Upload simulation states
+  const [profileResume, setProfileResume] = useState<string>('John_Lim_CV.pdf');
+  const [profileVideo, setProfileVideo] = useState<string>('https://assets.mixkit.co/videos/preview/mixkit-man-holding-a-smartphone-at-his-desk-40090-large.mp4');
+  const [recordingStatus, setRecordingStatus] = useState<'idle' | 'counting' | 'recording' | 'finished'>('idle');
+  const [countdown, setCountdown] = useState<number>(3);
+  const [recordSeconds, setRecordSeconds] = useState<number>(0);
+  const [isDragOver, setIsDragOver] = useState<boolean>(false);
+  const [videoUploadProgress, setVideoUploadProgress] = useState<number | null>(null);
+
+  const startVideoSimulation = () => {
+    setRecordingStatus('counting');
+    setCountdown(3);
+    
+    let count = 3;
+    const countInterval = setInterval(() => {
+      count -= 1;
+      if (count > 0) {
+        setCountdown(count);
+      } else {
+        clearInterval(countInterval);
+        setRecordingStatus('recording');
+        setRecordSeconds(0);
+        
+        let secs = 0;
+        const recInterval = setInterval(() => {
+          secs += 1;
+          setRecordSeconds(secs);
+          if (secs >= 5) {
+            clearInterval(recInterval);
+            setRecordingStatus('finished');
+            setProfileVideo('https://assets.mixkit.co/videos/preview/mixkit-woman-filming-herself-with-a-smartphone-43180-large.mp4');
+          }
+        }, 1000);
+      }
+    }, 1000);
+  };
+
+  const handleVideoUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      const fileName = e.target.files[0].name;
+      setVideoUploadProgress(10);
+      let progress = 10;
+      const interval = setInterval(() => {
+        progress += 30;
+        if (progress >= 100) {
+          clearInterval(interval);
+          setVideoUploadProgress(null);
+          setProfileVideo('https://assets.mixkit.co/videos/preview/mixkit-woman-filming-herself-with-a-smartphone-43180-large.mp4');
+          alert(`Video "${fileName}" uploaded successfully!`);
+        } else {
+          setVideoUploadProgress(progress);
+        }
+      }, 400);
+    }
+  };
+
   const myApps = applications.filter(a => a.studentId === studentId);
 
   // Filters & Sorting
@@ -930,17 +986,180 @@ export const StudentPortal: React.FC = () => {
 
       {/* 10. PROFILE SUBPAGE */}
       {activeSubpage === 'profile' && (
-        <div className="dashboard-card" style={{ maxWidth: '600px' }}>
-          <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Student Profile details</h3>
-          <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '24px' }}>
-            <img src={currentStudent.avatar} alt="Profile" className="user-avatar" style={{ width: '80px', height: '80px' }} />
-            <div>
-              <h4 style={{ fontSize: '18px', fontWeight: 700 }}>{currentStudent.name}</h4>
-              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Matric ID: {currentStudent.matricNumber} | Year: Year 3</p>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+          {/* Main Info Card */}
+          <div className="dashboard-card" style={{ margin: 0 }}>
+            <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Student Profile Details</h3>
+            <div style={{ display: 'flex', gap: '24px', alignItems: 'center', marginBottom: '20px' }}>
+              <img src={currentStudent.avatar} alt="Profile" className="user-avatar" style={{ width: '80px', height: '80px', borderRadius: '50%', objectFit: 'cover', border: '3px solid var(--color-primary)' }} />
+              <div>
+                <h4 style={{ fontSize: '18px', fontWeight: 700 }}>{currentStudent.name}</h4>
+                <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Matric ID: {currentStudent.matricNumber} | Year: Year 3</p>
+              </div>
+            </div>
+            
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px', borderTop: '1px solid var(--color-border)', paddingTop: '16px' }}>
+              <div>
+                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Academic Record</p>
+                <p style={{ fontSize: '15px', fontWeight: 600 }}>CGPA {currentStudent.cgpa}</p>
+              </div>
+              <div>
+                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Registered Email</p>
+                <p style={{ fontSize: '15px', fontWeight: 600 }}>{currentStudent.email}</p>
+              </div>
             </div>
           </div>
-          <p style={{ fontSize: '14px', marginBottom: '10px' }}>Academic Record: <strong>CGPA {currentStudent.cgpa}</strong></p>
-          <p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>Registered email: {currentStudent.email}</p>
+
+          {/* Resume Upload Section */}
+          <div className="dashboard-card" style={{ margin: 0 }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              📄 Curriculum Vitae (CV) / Resume
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>
+              Upload your latest professional resume to share with prospective employers during applications.
+            </p>
+
+            {profileResume ? (
+              <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', backgroundColor: 'var(--color-bg-alt, #f8fafc)', border: '1px solid var(--color-border)', borderRadius: '8px' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                  <span style={{ fontSize: '24px' }}>📄</span>
+                  <div>
+                    <p style={{ fontSize: '14px', fontWeight: 600, margin: 0 }}>{profileResume}</p>
+                    <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>PDF Format • Auto-parsed for skill scoring</p>
+                  </div>
+                </div>
+                <div style={{ display: 'flex', gap: '8px' }}>
+                  <a href="#" onClick={(e) => { e.preventDefault(); alert("Simulating document preview for " + profileResume); }} className="btn btn-secondary" style={{ padding: '6px 12px', fontSize: '12px', textDecoration: 'none' }}>
+                    Preview
+                  </a>
+                  <button className="btn btn-danger" onClick={() => setProfileResume('')} style={{ padding: '6px 12px', fontSize: '12px' }}>
+                    Remove
+                  </button>
+                </div>
+              </div>
+            ) : (
+              <div 
+                onDragOver={(e) => { e.preventDefault(); setIsDragOver(true); }}
+                onDragLeave={() => setIsDragOver(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragOver(false);
+                  if (e.dataTransfer.files && e.dataTransfer.files[0]) {
+                    setProfileResume(e.dataTransfer.files[0].name);
+                  }
+                }}
+                style={{ 
+                  border: isDragOver ? '2px dashed var(--color-primary)' : '2px dashed var(--color-border)', 
+                  backgroundColor: isDragOver ? 'var(--color-primary-light, #eff6ff)' : 'transparent',
+                  borderRadius: '8px', 
+                  padding: '24px', 
+                  textAlign: 'center', 
+                  cursor: 'pointer',
+                  transition: 'all 0.2s ease-in-out'
+                }}
+                onClick={() => document.getElementById('resume-file-input')?.click()}
+              >
+                <span style={{ fontSize: '32px', display: 'block', marginBottom: '8px' }}>📤</span>
+                <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 4px 0' }}>Drag & drop your resume here, or <span style={{ color: 'var(--color-primary)', textDecoration: 'underline' }}>browse files</span></p>
+                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>Supports PDF, DOCX (Max 5MB)</p>
+                <input 
+                  type="file" 
+                  id="resume-file-input" 
+                  accept=".pdf,.docx,.doc" 
+                  style={{ display: 'none' }} 
+                  onChange={(e) => {
+                    if (e.target.files && e.target.files[0]) {
+                      setProfileResume(e.target.files[0].name);
+                    }
+                  }}
+                />
+              </div>
+            )}
+          </div>
+
+          {/* Video Self-Introduction Section */}
+          <div className="dashboard-card" style={{ margin: 0 }}>
+            <h3 style={{ fontSize: '16px', fontWeight: 600, marginBottom: '12px', display: 'flex', alignItems: 'center', gap: '8px' }}>
+              🎥 Video Self-Introduction Pitch
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>
+              Record or upload a 1-minute video pitch to impress recruiters. Highlight your background, key strengths, and matching interests.
+            </p>
+
+            {recordingStatus !== 'idle' && recordingStatus !== 'finished' ? (
+              <div style={{ position: 'relative', width: '100%', height: '240px', backgroundColor: '#0f172a', borderRadius: '8px', overflow: 'hidden', display: 'flex', alignItems: 'center', justifyContent: 'center', color: '#fff' }}>
+                {recordingStatus === 'counting' && (
+                  <div style={{ textAlign: 'center' }}>
+                    <p style={{ fontSize: '14px', color: '#94a3b8', margin: '0 0 8px 0' }}>Simulating camera startup...</p>
+                    <h1 style={{ fontSize: '64px', fontWeight: 800, margin: 0, color: 'var(--color-primary)' }}>{countdown}</h1>
+                  </div>
+                )}
+                {recordingStatus === 'recording' && (
+                  <div style={{ textAlign: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', marginBottom: '12px' }}>
+                      <span className="pulse" style={{ display: 'inline-block', width: '12px', height: '12px', borderRadius: '50%', backgroundColor: '#ef4444' }}></span>
+                      <span style={{ fontSize: '14px', fontWeight: 700, letterSpacing: '0.05em' }}>🔴 RECORDING IN PROGRESS</span>
+                    </div>
+                    <p style={{ fontSize: '16px', fontWeight: 600, margin: '0 0 16px 0' }}>Simulated Capture: {recordSeconds}s / 5s</p>
+                    <p style={{ fontSize: '12px', color: '#94a3b8', margin: 0 }}>Smile at your camera to simulate pitching!</p>
+                  </div>
+                )}
+              </div>
+            ) : profileVideo ? (
+              <div>
+                <div style={{ position: 'relative', width: '100%', borderRadius: '8px', overflow: 'hidden', backgroundColor: 'black', marginBottom: '16px' }}>
+                  <video 
+                    src={profileVideo} 
+                    controls 
+                    style={{ width: '100%', display: 'block', maxHeight: '280px' }} 
+                  />
+                  {recordingStatus === 'finished' && (
+                    <div style={{ position: 'absolute', top: '12px', left: '12px', backgroundColor: 'var(--status-offered)', color: 'white', fontSize: '11px', fontWeight: 700, padding: '4px 8px', borderRadius: '4px', zIndex: 10 }}>
+                      ✓ Simulated Intro Recorded
+                    </div>
+                  )}
+                </div>
+
+                <div style={{ display: 'flex', gap: '10px' }}>
+                  <button className="btn btn-secondary" onClick={startVideoSimulation} style={{ flex: 1, padding: '8px 0', fontSize: '12px' }}>
+                    🎥 Simulate Recording Again
+                  </button>
+                  <label className="btn btn-secondary" style={{ flex: 1, padding: '8px 0', fontSize: '12px', textAlign: 'center', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    📤 Upload Pitch Video
+                    <input type="file" accept="video/*" style={{ display: 'none' }} onChange={handleVideoUpload} />
+                  </label>
+                  <button className="btn btn-danger" onClick={() => { setProfileVideo(''); setRecordingStatus('idle'); }} style={{ padding: '8px 16px', fontSize: '12px' }}>
+                    Remove
+                  </button>
+                </div>
+                {videoUploadProgress !== null && (
+                  <div style={{ marginTop: '10px', width: '100%' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '11px', marginBottom: '4px' }}>
+                      <span>Uploading video...</span>
+                      <span>{videoUploadProgress}%</span>
+                    </div>
+                    <div style={{ height: '6px', width: '100%', backgroundColor: 'var(--color-border)', borderRadius: '3px', overflow: 'hidden' }}>
+                      <div style={{ height: '100%', width: `${videoUploadProgress}%`, backgroundColor: 'var(--color-primary)', transition: 'width 0.2s ease-in-out' }}></div>
+                    </div>
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div style={{ border: '2px dashed var(--color-border)', borderRadius: '8px', padding: '32px', textAlign: 'center' }}>
+                <span style={{ fontSize: '32px', display: 'block', marginBottom: '12px' }}>📹</span>
+                <p style={{ fontSize: '14px', fontWeight: 600, margin: '0 0 16px 0' }}>No intro video submitted yet</p>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: '12px' }}>
+                  <button className="btn btn-primary" onClick={startVideoSimulation} style={{ fontSize: '13px' }}>
+                    🎥 Simulate Cam Recording
+                  </button>
+                  <label className="btn btn-secondary" style={{ fontSize: '13px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                    📤 Upload Pitch File
+                    <input type="file" accept="video/*" style={{ display: 'none' }} onChange={handleVideoUpload} />
+                  </label>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       )}
 
