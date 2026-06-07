@@ -106,6 +106,7 @@ export const StudentPortal: React.FC = () => {
   const [recordSeconds, setRecordSeconds] = useState<number>(0);
   const [isDragOver, setIsDragOver] = useState<boolean>(false);
   const [videoUploadProgress, setVideoUploadProgress] = useState<number | null>(null);
+  const [jobQuery, setJobQuery] = useState('');
 
   const startVideoSimulation = () => {
     setRecordingStatus('counting');
@@ -422,83 +423,181 @@ export const StudentPortal: React.FC = () => {
       {/* 2. MY APPLICATIONS SUBPAGE */}
       {activeSubpage === 'applications' && (
         <div>
-          <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>My Applications</h3>
-          
           {selectedAppId === null ? (
-            <div className="dashboard-card" style={{ padding: '0px', overflow: 'hidden' }}>
-              <div style={{ padding: '16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
-                <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
-                  <span className="form-label" style={{ margin: 0 }}>Filter Status:</span>
-                  <select
-                    className="form-input"
-                    style={{ padding: '6px 12px' }}
-                    value={statusFilter}
-                    onChange={e => setStatusFilter(e.target.value)}
-                  >
-                    <option value="All">All Statuses</option>
-                    <option value="Applied">Applied</option>
-                    <option value="Screening">Screening / Under Review</option>
-                    <option value="Interview">Interview Scheduled</option>
-                    <option value="Shortlisted">Shortlisted</option>
-                    <option value="Offered">Offered</option>
-                    <option value="Rejected">Rejected</option>
-                    <option value="Withdrawn">Withdrawn</option>
-                    <option value="Awaiting Offer Verification">Awaiting Verification</option>
-                    <option value="Approved">Approved</option>
-                  </select>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+              <div>
+                <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>My Applications</h3>
+                <div className="dashboard-card" style={{ padding: '0px', overflow: 'hidden', margin: 0 }}>
+                  <div style={{ padding: '16px', borderBottom: '1px solid var(--color-border)', display: 'flex', justifyContent: 'space-between', flexWrap: 'wrap', gap: '12px' }}>
+                    <div style={{ display: 'flex', gap: '8px', alignItems: 'center' }}>
+                      <span className="form-label" style={{ margin: 0 }}>Filter Status:</span>
+                      <select
+                        className="form-input"
+                        style={{ padding: '6px 12px' }}
+                        value={statusFilter}
+                        onChange={e => setStatusFilter(e.target.value)}
+                      >
+                        <option value="All">All Statuses</option>
+                        <option value="Applied">Applied</option>
+                        <option value="Screening">Screening / Under Review</option>
+                        <option value="Interview">Interview Scheduled</option>
+                        <option value="Shortlisted">Shortlisted</option>
+                        <option value="Offered">Offered</option>
+                        <option value="Rejected">Rejected</option>
+                        <option value="Withdrawn">Withdrawn</option>
+                        <option value="Awaiting Offer Verification">Awaiting Verification</option>
+                        <option value="Approved">Approved</option>
+                      </select>
+                    </div>
+                    <button
+                      className="btn btn-secondary"
+                      style={{ padding: '6px 12px', fontSize: '13px' }}
+                      onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
+                    >
+                      Sort: {sortOrder === 'desc' ? '📅 Newest First' : '📅 Oldest First'}
+                    </button>
+                  </div>
+
+                  {filteredApps.length === 0 ? (
+                    <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
+                      No applications found matching filter.
+                    </div>
+                  ) : (
+                    <table className="data-table">
+                      <thead>
+                        <tr>
+                          <th>Job Position</th>
+                          <th>Company</th>
+                          <th>Submitted Date</th>
+                          <th>Status</th>
+                          <th>Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {filteredApps.map(app => {
+                          const job = jobs.find(j => j.id === app.jobId);
+                          return (
+                            <tr key={app.id}>
+                              <td style={{ fontWeight: 600 }}>{job?.title}</td>
+                              <td>{job?.companyName}</td>
+                              <td>{app.submissionDate}</td>
+                              <td>
+                                <span className={`badge badge-${app.status.toLowerCase().replace(/ /g, '-')}`}>
+                                  {app.status}
+                                </span>
+                              </td>
+                              <td>
+                                <button
+                                  className="btn btn-primary"
+                                  style={{ padding: '6px 12px', fontSize: '12px' }}
+                                  onClick={() => setSelectedAppId(app.id)}
+                                >
+                                  🔍 Track & Manage
+                                </button>
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  )}
                 </div>
-                <button
-                  className="btn btn-secondary"
-                  style={{ padding: '6px 12px', fontSize: '13px' }}
-                  onClick={() => setSortOrder(prev => prev === 'desc' ? 'asc' : 'desc')}
-                >
-                  Sort: {sortOrder === 'desc' ? '📅 Newest First' : '📅 Oldest First'}
-                </button>
               </div>
 
-              {filteredApps.length === 0 ? (
-                <div style={{ padding: '40px', textAlign: 'center', color: 'var(--color-text-muted)' }}>
-                  No applications found matching filter.
-                </div>
-              ) : (
-                <table className="data-table">
-                  <thead>
-                    <tr>
-                      <th>Job Position</th>
-                      <th>Company</th>
-                      <th>Submitted Date</th>
-                      <th>Status</th>
-                      <th>Actions</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {filteredApps.map(app => {
-                      const job = jobs.find(j => j.id === app.jobId);
+              {/* Job Search & Application Suggestions Section */}
+              <div>
+                <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Search for a Job to Apply</h3>
+                <div className="dashboard-card" style={{ margin: 0, padding: '20px' }}>
+                  {/* Search Bar */}
+                  <div style={{ display: 'flex', gap: '10px', marginBottom: '20px' }}>
+                    <div style={{ position: 'relative', flex: 1 }}>
+                      <span style={{ position: 'absolute', left: '12px', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-text-muted)', fontSize: '14px' }}>🔍</span>
+                      <input
+                        type="text"
+                        className="form-input"
+                        placeholder="Search jobs by position, company, or required skills..."
+                        style={{ paddingLeft: '36px', margin: 0 }}
+                        value={jobQuery}
+                        onChange={e => setJobQuery(e.target.value)}
+                      />
+                    </div>
+                  </div>
+
+                  {/* Suggestion list */}
+                  {(() => {
+                    const filteredSuggestions = jobs
+                      .filter(j => j.isApproved)
+                      .filter(j => {
+                        if (!jobQuery) return true;
+                        const query = jobQuery.toLowerCase();
+                        return (
+                          j.title.toLowerCase().includes(query) ||
+                          j.companyName.toLowerCase().includes(query) ||
+                          j.scope.toLowerCase().includes(query) ||
+                          j.requiredSkills.some(skill => skill.toLowerCase().includes(query))
+                        );
+                      });
+
+                    if (filteredSuggestions.length === 0) {
                       return (
-                        <tr key={app.id}>
-                          <td style={{ fontWeight: 600 }}>{job?.title}</td>
-                          <td>{job?.companyName}</td>
-                          <td>{app.submissionDate}</td>
-                          <td>
-                            <span className={`badge badge-${app.status.toLowerCase().replace(/ /g, '-')}`}>
-                              {app.status}
-                            </span>
-                          </td>
-                          <td>
-                            <button
-                              className="btn btn-primary"
-                              style={{ padding: '6px 12px', fontSize: '12px' }}
-                              onClick={() => setSelectedAppId(app.id)}
-                            >
-                              🔍 Track & Manage
-                            </button>
-                          </td>
-                        </tr>
+                        <div style={{ padding: '24px', textAlign: 'center', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                          No job postings found matching your search.
+                        </div>
                       );
-                    })}
-                  </tbody>
-                </table>
-              )}
+                    }
+
+                    return (
+                      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(280px, 1fr))', gap: '20px' }}>
+                        {filteredSuggestions.map(job => {
+                          const hasMatchingTags = job.specializationTags.some(tag => 
+                            currentStudent?.skills.some(skill => skill.toLowerCase().includes(tag.toLowerCase()))
+                          );
+                          const alreadyApplied = myApps.some(a => a.jobId === job.id && a.status !== 'Withdrawn');
+                          
+                          return (
+                            <div key={job.id} className={`dashboard-card ${hasMatchingTags ? 'recommend-card-gold' : ''}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0, border: '1px solid var(--color-border)', borderRadius: '12px', padding: '16px' }}>
+                              <div>
+                                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                                  <span style={{ fontSize: '24px' }}>🏢</span>
+                                  <span className="badge badge-applied" style={{ fontSize: '10px' }}>{job.duration}</span>
+                                </div>
+                                <h4 style={{ fontSize: '15px', fontWeight: 'bold', margin: '0 0 4px 0' }}>{job.title}</h4>
+                                <p style={{ color: 'var(--color-primary)', fontSize: '13px', fontWeight: 600, margin: '0 0 8px 0' }}>{job.companyName}</p>
+                                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', lineHeight: '1.4', margin: 0 }}>{job.scope.length > 120 ? `${job.scope.slice(0, 120)}...` : job.scope}</p>
+                                
+                                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '4px', marginTop: '10px' }}>
+                                  {job.requiredSkills.slice(0, 3).map(skill => (
+                                    <span key={skill} style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: 'var(--color-primary-light, #eff6ff)', color: 'var(--color-primary)', borderRadius: '4px' }}>
+                                      {skill}
+                                    </span>
+                                  ))}
+                                  {job.requiredSkills.length > 3 && (
+                                    <span style={{ fontSize: '9px', padding: '2px 6px', backgroundColor: '#f1f5f9', color: '#64748b', borderRadius: '4px' }}>
+                                      +{job.requiredSkills.length - 3} more
+                                    </span>
+                                  )}
+                                </div>
+                              </div>
+
+                              <div style={{ display: 'flex', gap: '8px', marginTop: '16px' }}>
+                                <button className="btn btn-secondary" style={{ flex: 1, padding: '6px 0', fontSize: '11px' }} onClick={() => setViewJobModal(job)}>Details</button>
+                                <button 
+                                  className="btn btn-primary" 
+                                  style={{ flex: 1, padding: '6px 0', fontSize: '11px' }}
+                                  onClick={() => setApplyJobFlow(job)}
+                                  disabled={alreadyApplied}
+                                >
+                                  {alreadyApplied ? '✓ Applied' : 'Apply Now'}
+                                </button>
+                              </div>
+                            </div>
+                          );
+                        })}
+                      </div>
+                    );
+                  })()}
+                </div>
+              </div>
             </div>
           ) : (
             (() => {
