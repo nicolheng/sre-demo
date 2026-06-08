@@ -71,7 +71,6 @@ const PortalShell: React.FC = () => {
             { id: 'partners', icon: '🏢', label: 'Industry Partners' },
             { id: 'reports', icon: '📋', label: 'Internship Reports' },
             { id: 'planning', icon: '📅', label: 'Project Planning' },
-            { id: 'monitoring', icon: '📊', label: 'Progress Monitoring' },
             { id: 'messages', icon: '💬', label: 'Messages' },
             { id: 'profile', icon: '👤', label: 'Profile' },
             { id: 'settings', icon: '⚙️', label: 'Settings' }

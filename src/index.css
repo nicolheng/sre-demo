@@ -1437,3 +1437,12 @@ button, input, textarea, select {
 .logout-btn:hover {
   background-color: var(--status-rejected) !important;
 }
+
+/* Student Planning Selection Card */
+.student-planning-card {
+  transition: all var(--transition-fast, 0.2s ease);
+}
+.student-planning-card:hover {
+  background-color: var(--color-primary-light) !important;
+  transform: translateX(4px);
+}

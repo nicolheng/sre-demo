@@ -44,6 +44,33 @@ export const StudentPortal: React.FC = () => {
   const [sop, setSop] = useState('');
   const [screeningAnswers, setScreeningAnswers] = useState<Record<string, string>>({});
   const [videoUrl, setVideoUrl] = useState('');
+  const [useDefaultResume, setUseDefaultResume] = useState(true);
+  const [customResumeName, setCustomResumeName] = useState('');
+  const [saveAsDefault, setSaveAsDefault] = useState(false);
+  const [useDefaultVideo, setUseDefaultVideo] = useState(true);
+  const [customVideoUrl, setCustomVideoUrl] = useState('');
+  const [saveVideoAsDefault, setSaveVideoAsDefault] = useState(false);
+
+  // Assessments Page State
+  const [expandedAppAnswers, setExpandedAppAnswers] = useState<Record<string, boolean>>({});
+  const [videoPreviewUrl, setVideoPreviewUrl] = useState<string | null>(null);
+
+  // Interview Booking State
+  const [selectedInterviewCompanyId, setSelectedInterviewCompanyId] = useState<string | null>('c_ijm');
+  const [selectedCalendarDate, setSelectedCalendarDate] = useState<string | null>('2026-06-15');
+
+  const openApplyModal = (job: Job) => {
+    setApplyJobFlow(job);
+    setSop('');
+    setScreeningAnswers({});
+    setVideoUrl('');
+    setUseDefaultResume(true);
+    setCustomResumeName('');
+    setSaveAsDefault(false);
+    setUseDefaultVideo(true);
+    setCustomVideoUrl('');
+    setSaveVideoAsDefault(false);
+  };
 
   // Logbook form state
   const [hours, setHours] = useState<number>(8);
@@ -184,11 +211,34 @@ export const StudentPortal: React.FC = () => {
   const progressPercent = Math.min(Math.round((totalHours / 120) * 100), 100);
 
   const handleApply = (job: Job) => {
-    applyForJob(job.id, studentId, sop, screeningAnswers, videoUrl);
+    const finalCvName = useDefaultResume
+      ? (profileResume || `${currentStudent?.name || 'Student'}_Resume.pdf`)
+      : (customResumeName.trim() || `${currentStudent?.name || 'Student'}_Resume.pdf`);
+
+    const finalVideoUrl = useDefaultVideo
+      ? (profileVideo || '')
+      : (customVideoUrl.trim() || '');
+
+    applyForJob(job.id, studentId, sop, screeningAnswers, finalVideoUrl, finalCvName);
+
+    if (!useDefaultResume && saveAsDefault && customResumeName.trim()) {
+      setProfileResume(customResumeName.trim());
+    }
+
+    if (!useDefaultVideo && saveVideoAsDefault && customVideoUrl.trim()) {
+      setProfileVideo(customVideoUrl.trim());
+    }
+
     setApplyJobFlow(null);
     setSop('');
     setScreeningAnswers({});
     setVideoUrl('');
+    setUseDefaultResume(true);
+    setCustomResumeName('');
+    setSaveAsDefault(false);
+    setUseDefaultVideo(true);
+    setCustomVideoUrl('');
+    setSaveVideoAsDefault(false);
     setActiveSubpage('applications');
   };
 
@@ -606,7 +656,7 @@ export const StudentPortal: React.FC = () => {
                                 <button
                                   className="btn btn-primary"
                                   style={{ flex: 1, padding: '6px 0', fontSize: '11px' }}
-                                  onClick={(e) => { e.stopPropagation(); setApplyJobFlow(job); }}
+                                  onClick={(e) => { e.stopPropagation(); openApplyModal(job); }}
                                   disabled={alreadyApplied}
                                 >
                                   {alreadyApplied ? '✓ Applied' : 'Apply Now'}
@@ -796,77 +846,499 @@ export const StudentPortal: React.FC = () => {
 
       {/* 4. ASSESSMENTS SUBPAGE */}
       {activeSubpage === 'assessments' && (
-        <div className="dashboard-card">
-          <h3 style={{ fontSize: '18px', marginBottom: '12px' }}>Student Assessments & Screening Tests</h3>
-          <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', marginBottom: '24px' }}>
-            Complete the tests requested by your applied employers.
-          </p>
-
-          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
-            <div style={{ border: '1px solid var(--color-border)', borderRadius: '10px', padding: '20px' }}>
-              <span className="badge badge-offered" style={{ marginBottom: '10px' }}>Completed</span>
-              <h4 style={{ fontSize: '16px', fontWeight: 700 }}>Coding Technical Assessment</h4>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '8px 0' }}>Duration: 60 minutes. Basic Data Structures and Algorithm analysis.</p>
-              <button className="btn btn-secondary" disabled style={{ width: '100%' }}>Test Completed (Score: 100%)</button>
-            </div>
-
-            <div style={{ border: '1px solid var(--color-border)', borderRadius: '10px', padding: '20px' }}>
-              <span className="badge badge-interview" style={{ marginBottom: '10px' }}>In Progress</span>
-              <h4 style={{ fontSize: '16px', fontWeight: 700 }}>Video Introduction Interview</h4>
-              <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '8px 0' }}>Submit a 60-second video explaining your profile strengths.</p>
-              <button className="btn btn-primary" style={{ width: '100%' }} onClick={() => setActiveSubpage('applications')}>Continue Video Upload</button>
-            </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+          <div className="dashboard-card" style={{ margin: 0 }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
+              🎯 Employer Assessments & Screening Tasks
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: 0 }}>
+              Here are the custom technical challenges, video pitches, and written screening tasks required by companies you have applied to.
+            </p>
           </div>
+
+          {(() => {
+            const activeApps = myApps.filter(app => app.status !== 'Withdrawn' && app.status !== 'Rejected');
+            if (activeApps.length === 0) {
+              return (
+                <div className="dashboard-card" style={{ textAlign: 'center', padding: '48px 24px', margin: 0 }}>
+                  <span style={{ fontSize: '48px', display: 'block', marginBottom: '16px' }}>🔍</span>
+                  <h4 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '8px' }}>No Active Applications Found</h4>
+                  <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', maxWidth: '450px', margin: '0 auto 24px auto', lineHeight: '1.5' }}>
+                    Once you submit an application for a placement, custom employer coding tests, written challenges, and video pitch requirements will appear here.
+                  </p>
+                  <button className="btn btn-primary" onClick={() => setActiveSubpage('jobs')}>
+                    Browse and Apply for Internships
+                  </button>
+                </div>
+              );
+            }
+
+            return (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                {activeApps.map(app => {
+                  const job = jobs.find(j => j.id === app.jobId);
+                  if (!job) return null;
+
+                  const hasScreeningAnswers = app.screeningAnswers && Object.keys(app.screeningAnswers).length > 0;
+                  const hasVideoUrl = !!app.videoResponseUrl;
+
+                  return (
+                    <div key={app.id} className="dashboard-card" style={{ margin: 0, padding: '24px', position: 'relative' }}>
+                      {/* Company Header */}
+                      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '16px', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                          <span style={{ fontSize: '32px', padding: '8px', backgroundColor: 'var(--bg-app)', borderRadius: '8px' }}>
+                            {job.logo || '🏢'}
+                          </span>
+                          <div>
+                            <h4 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>{job.title}</h4>
+                            <p style={{ fontSize: '13px', color: 'var(--color-primary)', fontWeight: 600, margin: '2px 0 0 0' }}>{job.companyName}</p>
+                          </div>
+                        </div>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                          <span className="form-label" style={{ margin: 0, fontSize: '12px' }}>Application Status:</span>
+                          <span className={`badge badge-${app.status.toLowerCase().replace(/ /g, '-')}`}>
+                            {app.status === 'Screening' ? 'Under Review' : app.status}
+                          </span>
+                        </div>
+                      </div>
+
+                      {/* Assessments Grid */}
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
+                        {/* 1. Written Screening Assessment */}
+                        <div style={{ 
+                          border: '1px solid var(--color-border)', 
+                          borderRadius: '10px', 
+                          padding: '16px 20px', 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          justifyContent: 'space-between',
+                          backgroundColor: 'var(--bg-app)',
+                          transition: 'all 0.2s ease'
+                        }}>
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Task 1: Written Screening</span>
+                              {hasScreeningAnswers ? (
+                                <span className="badge badge-offered" style={{ fontSize: '10.5px', padding: '2px 8px' }}>Completed</span>
+                              ) : (
+                                <span className="badge badge-interview" style={{ fontSize: '10.5px', padding: '2px 8px' }}>Pending</span>
+                              )}
+                            </div>
+                            <h5 style={{ fontSize: '14.5px', fontWeight: 700, margin: '0 0 6px 0' }}>Employer Screening Questions</h5>
+                            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: 0, lineHeight: '1.4' }}>
+                              Answer custom queries drafted by {job.companyName}'s hiring managers regarding your technical background.
+                            </p>
+                          </div>
+
+                          <div style={{ marginTop: '16px' }}>
+                            {hasScreeningAnswers ? (
+                              <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                                <button 
+                                  className="btn btn-secondary" 
+                                  style={{ width: '100%', padding: '6px 12px', fontSize: '12px' }}
+                                  onClick={() => setExpandedAppAnswers(prev => ({ ...prev, [app.id]: !prev[app.id] }))}
+                                >
+                                  {expandedAppAnswers[app.id] ? 'Hide Submitted Answers' : 'View Submitted Answers'}
+                                </button>
+
+                                {/* Screening answers dropdown */}
+                                {expandedAppAnswers[app.id] && (
+                                  <div style={{ 
+                                    marginTop: '8px', 
+                                    padding: '12px', 
+                                    backgroundColor: 'var(--bg-card)', 
+                                    borderRadius: '6px', 
+                                    border: '1px solid var(--color-border)',
+                                    maxHeight: '200px',
+                                    overflowY: 'auto',
+                                    display: 'flex',
+                                    flexDirection: 'column',
+                                    gap: '10px',
+                                    animation: 'slideUp 0.2s ease forwards'
+                                  }}>
+                                    {job.screeningQuestions?.map((q, idx) => (
+                                      <div key={idx} style={{ borderBottom: idx < job.screeningQuestions.length - 1 ? '1px solid var(--color-border)' : 'none', paddingBottom: idx < job.screeningQuestions.length - 1 ? '8px' : '0' }}>
+                                        <p style={{ fontSize: '11.5px', fontWeight: 700, margin: '0 0 4px 0', color: 'var(--color-text-main)' }}>Q: {q}</p>
+                                        <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0, fontStyle: 'italic' }}>A: "{app.screeningAnswers[idx] || 'N/A'}"</p>
+                                      </div>
+                                    ))}
+                                  </div>
+                                )}
+                              </div>
+                            ) : (
+                              <button 
+                                className="btn btn-primary" 
+                                style={{ width: '100%', padding: '6px 12px', fontSize: '12px' }}
+                                onClick={() => {
+                                  setSelectedAppId(app.id);
+                                  setActiveSubpage('applications');
+                                }}
+                              >
+                                Answer Questions
+                              </button>
+                            )}
+                          </div>
+                        </div>
+
+                        {/* 2. Video Pitch / Intro Interview */}
+                        <div style={{ 
+                          border: '1px solid var(--color-border)', 
+                          borderRadius: '10px', 
+                          padding: '16px 20px', 
+                          display: 'flex', 
+                          flexDirection: 'column', 
+                          justifyContent: 'space-between',
+                          backgroundColor: 'var(--bg-app)',
+                          transition: 'all 0.2s ease'
+                        }}>
+                          <div>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                              <span style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', textTransform: 'uppercase' }}>Task 2: Video Pitch</span>
+                              {hasVideoUrl ? (
+                                <span className="badge badge-offered" style={{ fontSize: '10.5px', padding: '2px 8px' }}>Completed</span>
+                              ) : (
+                                <span className="badge badge-interview" style={{ fontSize: '10.5px', padding: '2px 8px' }}>Pending</span>
+                              )}
+                            </div>
+                            <h5 style={{ fontSize: '14.5px', fontWeight: 700, margin: '0 0 6px 0' }}>Video Introduction Interview</h5>
+                            <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: 0, lineHeight: '1.4' }}>
+                              Submit a video pitch demonstrating your design philosophy, coding skills, or general background. (Max: {job.videoDurationLimit || 60}s).
+                            </p>
+                          </div>
+
+                          <div style={{ marginTop: '16px' }}>
+                            {hasVideoUrl ? (
+                              <button 
+                                className="btn btn-secondary" 
+                                style={{ width: '100%', padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
+                                onClick={() => setVideoPreviewUrl(app.videoResponseUrl || null)}
+                              >
+                                📺 Watch Submitted Pitch
+                              </button>
+                            ) : (
+                              <button 
+                                className="btn btn-primary" 
+                                style={{ width: '100%', padding: '6px 12px', fontSize: '12px' }}
+                                onClick={() => {
+                                  setSelectedAppId(app.id);
+                                  setActiveSubpage('applications');
+                                }}
+                              >
+                                Upload / Record Pitch Video
+                              </button>
+                            )}
+                          </div>
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            );
+          })()}
         </div>
       )}
 
       {/* 5. INTERVIEWS BOOKING SUBPAGE */}
       {activeSubpage === 'interviews' && (
-        <div>
-          <h3 style={{ fontSize: '18px', marginBottom: '16px' }}>Book Interview Timeslots</h3>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '20px', width: '100%' }}>
+          <div className="dashboard-card" style={{ margin: 0 }}>
+            <h3 style={{ fontSize: '20px', fontWeight: 700, fontFamily: 'var(--font-display)', marginBottom: '8px' }}>
+              📅 Interview Timeslots Booking
+            </h3>
+            <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', margin: 0 }}>
+              Select a company on the left to see their calendar. Only companies that have invited you for an interview are bookable.
+            </p>
+          </div>
 
-          <div className="form-grid">
-            <div className="dashboard-card" style={{ margin: 0 }}>
-              <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>📅 Available Slots</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {interviewSlots.filter(slot => !slot.bookedBy).map(slot => (
-                  <div key={slot.id} style={{ border: '1px solid var(--color-border)', padding: '12px', borderRadius: '6px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div>
-                      <h4 style={{ fontSize: '14px', fontWeight: 600 }}>{slot.companyName}</h4>
-                      <p style={{ fontSize: '12px', color: 'var(--color-text-muted)' }}>Date: {slot.date} at {slot.time}</p>
-                    </div>
-                    <button
-                      className="btn btn-primary"
-                      style={{ padding: '6px 12px', fontSize: '12px' }}
-                      onClick={() => {
-                        bookInterviewSlot(slot.id, studentId);
-                        setShowBookingToast(true);
-                        setTimeout(() => setShowBookingToast(false), 3000);
-                      }}
-                    >
-                      Book Slot
-                    </button>
-                  </div>
-                ))}
-              </div>
-              {showBookingToast && (
-                <div style={{ backgroundColor: 'var(--status-offered)', color: 'white', padding: '10px', borderRadius: '4px', fontSize: '12px', marginTop: '12px', textAlign: 'center' }}>
-                  ✓ Booking Confirmed! Sync complete.
+          <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1.8fr', gap: '24px', alignItems: 'start' }}>
+            {/* Left Column: Company Category selector */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
+              <div className="dashboard-card" style={{ margin: 0, padding: '20px' }}>
+                <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '16px', color: 'var(--color-text-main)', borderBottom: '1px solid var(--color-border)', paddingBottom: '10px' }}>
+                  🏢 Select Company
+                </h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                  {(() => {
+                    // Unique companies with slots or bookings
+                    const companyList = Array.from(new Set(interviewSlots.map(slot => {
+                      const job = jobs.find(j => j.id === slot.jobId);
+                      return JSON.stringify({
+                        companyId: job?.companyId || slot.companyName,
+                        companyName: slot.companyName,
+                        jobId: slot.jobId
+                      });
+                    }))).map(str => JSON.parse(str) as { companyId: string; companyName: string; jobId: string });
+
+                    return companyList.map(comp => {
+                      // Check if student is invited
+                      const app = applications.find(a => a.studentId === studentId && a.jobId === comp.jobId);
+                      const isInvited = app?.status === 'Interview';
+                      const isSelected = selectedInterviewCompanyId === comp.companyId;
+
+                      return (
+                        <div
+                          key={comp.companyId}
+                          onClick={() => {
+                            setSelectedInterviewCompanyId(comp.companyId);
+                            // Set selected date to the first slot of this company if exists
+                            const firstSlot = interviewSlots.find(s => s.jobId === comp.jobId);
+                            if (firstSlot) setSelectedCalendarDate(firstSlot.date);
+                          }}
+                          style={{
+                            border: isSelected ? '1px solid var(--color-primary)' : '1px solid var(--color-border)',
+                            backgroundColor: isSelected ? 'var(--color-primary-light, #eff6ff)' : 'var(--bg-card)',
+                            padding: '14px 16px',
+                            borderRadius: '10px',
+                            cursor: 'pointer',
+                            display: 'flex',
+                            flexDirection: 'column',
+                            gap: '8px',
+                            transition: 'all 0.2s ease',
+                            boxShadow: isSelected ? 'var(--shadow-sm)' : 'none'
+                          }}
+                        >
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                            <h5 style={{ fontSize: '14px', fontWeight: 700, margin: 0, color: isSelected ? 'var(--color-primary)' : 'var(--color-text-main)' }}>
+                              {comp.companyName}
+                            </h5>
+                            {isInvited ? (
+                              <span className="badge badge-interview" style={{ fontSize: '9.5px', padding: '2px 6px' }}>🟢 Invited</span>
+                            ) : (
+                              <span className="badge badge-withdrawn" style={{ fontSize: '9.5px', padding: '2px 6px', display: 'flex', alignItems: 'center', gap: '3px' }}>
+                                🔒 Locked
+                              </span>
+                            )}
+                          </div>
+                          
+                          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--color-text-muted)' }}>
+                            <span>Position: {jobs.find(j => j.id === comp.jobId)?.title || 'Internship'}</span>
+                            {!isInvited && (
+                              <span style={{ color: 'var(--status-rejected)', fontWeight: 500 }}>Pending invitation</span>
+                            )}
+                          </div>
+                        </div>
+                      );
+                    });
+                  })()}
                 </div>
-              )}
+              </div>
+
+              {/* Booked list shortcut */}
+              <div className="dashboard-card" style={{ margin: 0, padding: '20px' }}>
+                <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>🔒 Booked Appointments</h4>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                  {interviewSlots.filter(slot => slot.bookedBy === studentId).map(slot => (
+                    <div key={slot.id} style={{ 
+                      border: '1px solid var(--status-offered)', 
+                      backgroundColor: 'hsl(142, 76%, 97%)', 
+                      padding: '10px 14px', 
+                      borderRadius: '8px',
+                      display: 'flex',
+                      justifyContent: 'space-between',
+                      alignItems: 'center'
+                    }}>
+                      <div>
+                        <h5 style={{ fontSize: '13px', fontWeight: 700, margin: 0 }}>{slot.companyName}</h5>
+                        <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>{slot.date} at {slot.time}</p>
+                      </div>
+                      <span style={{ fontSize: '16px' }}>✅</span>
+                    </div>
+                  ))}
+                  {interviewSlots.filter(slot => slot.bookedBy === studentId).length === 0 && (
+                    <div style={{ fontSize: '12px', color: 'var(--color-text-muted)', textAlign: 'center', padding: '10px' }}>
+                      No booked appointments yet.
+                    </div>
+                  )}
+                </div>
+              </div>
             </div>
 
-            <div className="dashboard-card" style={{ margin: 0 }}>
-              <h4 style={{ fontSize: '15px', fontWeight: 600, marginBottom: '12px' }}>🔒 My Booked Appointments</h4>
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {interviewSlots.filter(slot => slot.bookedBy === studentId).map(slot => (
-                  <div key={slot.id} style={{ border: '1px solid var(--color-primary)', backgroundColor: 'var(--color-primary-light)', padding: '12px', borderRadius: '6px' }}>
-                    <h4 style={{ fontSize: '14px', fontWeight: 600, color: 'var(--color-primary)' }}>{slot.companyName}</h4>
-                    <p style={{ fontSize: '12px' }}>Confirmed: <strong>{slot.date} at {slot.time}</strong></p>
-                    <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>✓ Synchronized with university core calendar.</p>
+            {/* Right Column: Calendar & Slot details */}
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '20px' }}>
+              <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+                  <h4 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>📅 June 2026</h4>
+                  <div style={{ display: 'flex', gap: '12px', fontSize: '11px' }}>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--color-primary)' }}></span> Available</span>
+                    <span style={{ display: 'flex', alignItems: 'center', gap: '4px' }}><span style={{ display: 'inline-block', width: '8px', height: '8px', borderRadius: '50%', backgroundColor: 'var(--status-offered)' }}></span> Booked</span>
                   </div>
-                ))}
+                </div>
+
+                {/* Calendar Grid */}
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: '10px', textAlign: 'center' }}>
+                  {/* Calendar Weekday headers */}
+                  {['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map(day => (
+                    <div key={day} style={{ fontSize: '12px', fontWeight: 700, color: 'var(--color-text-muted)', paddingBottom: '8px' }}>
+                      {day}
+                    </div>
+                  ))}
+
+                  {/* Calendar Days June 2026 */}
+                  {Array.from({ length: 30 }, (_, i) => {
+                    const dayNum = i + 1;
+                    const dateStr = `2026-06-${dayNum.toString().padStart(2, '0')}`;
+
+                    // Check if student has booking on this day
+                    const hasUserBooking = interviewSlots.some(s => s.date === dateStr && s.bookedBy === studentId);
+                    
+                    // Check if selected company has slots on this day
+                    const activeJob = jobs.find(j => j.companyId === selectedInterviewCompanyId);
+                    const hasCompanySlots = interviewSlots.some(s => s.date === dateStr && !s.bookedBy && s.jobId === activeJob?.id);
+
+                    const isSelected = selectedCalendarDate === dateStr;
+
+                    return (
+                      <div
+                        key={dayNum}
+                        onClick={() => setSelectedCalendarDate(dateStr)}
+                        style={{
+                          aspectRatio: '1.2',
+                          borderRadius: '8px',
+                          border: isSelected ? '2px solid var(--color-primary)' : '1px solid var(--color-border)',
+                          backgroundColor: hasUserBooking
+                            ? 'hsl(142, 76%, 93%)'
+                            : hasCompanySlots
+                              ? 'hsl(221, 83%, 95%)'
+                              : 'transparent',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          cursor: 'pointer',
+                          position: 'relative',
+                          transition: 'all 0.2s ease',
+                          boxShadow: isSelected ? 'var(--shadow-sm)' : 'none'
+                        }}
+                      >
+                        <span style={{ fontSize: '13px', fontWeight: 700, color: hasUserBooking ? 'var(--status-offered)' : hasCompanySlots ? 'var(--color-primary)' : 'var(--color-text-main)' }}>
+                          {dayNum}
+                        </span>
+
+                        {/* Dot markers */}
+                        <div style={{ display: 'flex', gap: '3px', position: 'absolute', bottom: '6px' }}>
+                          {hasUserBooking && (
+                            <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'var(--status-offered)' }}></span>
+                          )}
+                          {hasCompanySlots && (
+                            <span style={{ width: '5px', height: '5px', borderRadius: '50%', backgroundColor: 'var(--color-primary)' }}></span>
+                          )}
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
               </div>
+
+              {/* Slots details panel */}
+              {selectedCalendarDate && (
+                <div className="dashboard-card" style={{ margin: 0, padding: '20px', animation: 'slideUp 0.2s ease forwards' }}>
+                  {(() => {
+                    const formattedDate = new Date(selectedCalendarDate).toLocaleDateString('en-US', {
+                      weekday: 'long',
+                      year: 'numeric',
+                      month: 'long',
+                      day: 'numeric'
+                    });
+
+                    const activeJob = jobs.find(j => j.companyId === selectedInterviewCompanyId);
+                    const companyName = activeJob?.companyName || 'Selected Company';
+                    
+                    const daySlots = interviewSlots.filter(s => s.date === selectedCalendarDate && s.jobId === activeJob?.id);
+                    
+                    const studentBooking = interviewSlots.find(s => s.date === selectedCalendarDate && s.bookedBy === studentId);
+
+                    const app = applications.find(a => a.studentId === studentId && a.jobId === activeJob?.id);
+                    const isInvited = app?.status === 'Interview';
+
+                    return (
+                      <div>
+                        <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '6px', color: 'var(--color-text-main)' }}>
+                          {formattedDate}
+                        </h4>
+                        <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>
+                          Slots for <strong>{companyName}</strong>
+                        </p>
+
+                        {/* List slots */}
+                        <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
+                          {studentBooking && (
+                            <div style={{ 
+                              border: '1px solid var(--status-offered)', 
+                              backgroundColor: 'hsl(142, 76%, 97%)', 
+                              padding: '12px', 
+                              borderRadius: '8px', 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'center'
+                            }}>
+                              <div>
+                                <span style={{ fontSize: '11px', textTransform: 'uppercase', color: 'var(--status-offered)', fontWeight: 700, display: 'block', marginBottom: '2px' }}>Your Confirmed Booking</span>
+                                <h5 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{studentBooking.companyName}</h5>
+                                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>Confirmed at {studentBooking.time}</p>
+                              </div>
+                              <span className="badge badge-offered" style={{ fontSize: '10px' }}>Confirmed</span>
+                            </div>
+                          )}
+
+                          {daySlots.filter(s => !s.bookedBy).map(slot => (
+                            <div key={slot.id} style={{ 
+                              border: '1px solid var(--color-border)', 
+                              padding: '12px', 
+                              borderRadius: '8px', 
+                              display: 'flex', 
+                              justifyContent: 'space-between', 
+                              alignItems: 'center',
+                              backgroundColor: 'var(--bg-card)'
+                            }}>
+                              <div>
+                                <h5 style={{ fontSize: '14px', fontWeight: 600, margin: 0 }}>{slot.time}</h5>
+                                <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>Available timeslot</p>
+                              </div>
+                              
+                              {isInvited ? (
+                                <button
+                                  className="btn btn-primary"
+                                  style={{ padding: '6px 12px', fontSize: '12px' }}
+                                  onClick={() => {
+                                    bookInterviewSlot(slot.id, studentId);
+                                    setShowBookingToast(true);
+                                    setTimeout(() => setShowBookingToast(false), 3000);
+                                  }}
+                                >
+                                  Book Slot
+                                </button>
+                              ) : (
+                                <button
+                                  className="btn btn-secondary"
+                                  style={{ padding: '6px 12px', fontSize: '12px', cursor: 'not-allowed' }}
+                                  disabled
+                                  title="Requires interview invitation from this company"
+                                >
+                                  Locked
+                                </button>
+                              )}
+                            </div>
+                          ))}
+
+                          {daySlots.length === 0 && !studentBooking && (
+                            <div style={{ textAlign: 'center', padding: '24px 12px', color: 'var(--color-text-muted)', fontSize: '13px' }}>
+                              No available interview slots scheduled on this date for {companyName}.
+                            </div>
+                          )}
+                        </div>
+
+                        {showBookingToast && (
+                          <div style={{ backgroundColor: 'var(--status-offered)', color: 'white', padding: '10px', borderRadius: '4px', fontSize: '12px', marginTop: '12px', textAlign: 'center' }}>
+                            ✓ Booking Confirmed! Your schedule has been updated.
+                          </div>
+                        )}
+                      </div>
+                    );
+                  })()}
+                </div>
+              )}
             </div>
           </div>
         </div>
@@ -1614,7 +2086,7 @@ export const StudentPortal: React.FC = () => {
                     <button
                       className="btn btn-primary"
                       style={{ flex: 1, padding: '8px 0', fontSize: '12px' }}
-                      onClick={(e) => { e.stopPropagation(); setApplyJobFlow(job); }}
+                      onClick={(e) => { e.stopPropagation(); openApplyModal(job); }}
                       disabled={myApps.some(a => a.jobId === job.id && a.status !== 'Withdrawn')}
                     >
                       {myApps.some(a => a.jobId === job.id && a.status !== 'Withdrawn') ? 'Applied' : 'Apply Now'}
@@ -1686,15 +2158,282 @@ export const StudentPortal: React.FC = () => {
               <span className="form-label">Statement of Purpose:</span>
               <textarea className="form-input" rows={3} value={sop} onChange={e => setSop(e.target.value)} />
             </div>
+
+            {/* Resume Selection Section */}
+            <div className="form-group" style={{ 
+              border: '1px solid var(--color-border)', 
+              borderRadius: '10px', 
+              padding: '16px', 
+              backgroundColor: 'var(--bg-app)', 
+              marginBottom: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <span className="form-label" style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text-main)', fontSize: '14px' }}>
+                📄 Resume / CV Selection
+              </span>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Radio 1: Use default */}
+                <label style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  cursor: 'pointer', 
+                  fontSize: '13px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: useDefaultResume ? 'var(--color-primary-light, #eff6ff)' : 'transparent',
+                  border: useDefaultResume ? '1px solid var(--color-primary)' : '1px solid transparent',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <input
+                    type="radio"
+                    name="resumeType"
+                    checked={useDefaultResume}
+                    onChange={() => setUseDefaultResume(true)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div>
+                    <span style={{ fontWeight: useDefaultResume ? 600 : 400 }}>Use default resume from profile</span>
+                    {profileResume ? (
+                      <div style={{ fontSize: '11px', color: 'var(--color-primary)', marginTop: '2px', fontWeight: 500 }}>
+                        Active: <strong>{profileResume}</strong>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '11px', color: 'var(--status-rejected)', marginTop: '2px' }}>
+                        ⚠️ No default resume found on your profile. Please select a custom one below.
+                      </div>
+                    )}
+                  </div>
+                </label>
+
+                {/* Radio 2: Custom resume */}
+                <label style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  cursor: 'pointer', 
+                  fontSize: '13px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: !useDefaultResume ? 'var(--color-primary-light, #eff6ff)' : 'transparent',
+                  border: !useDefaultResume ? '1px solid var(--color-primary)' : '1px solid transparent',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <input
+                    type="radio"
+                    name="resumeType"
+                    checked={!useDefaultResume}
+                    onChange={() => setUseDefaultResume(false)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div>
+                    <span style={{ fontWeight: !useDefaultResume ? 600 : 400 }}>Upload a custom resume for this application</span>
+                  </div>
+                </label>
+
+                {/* Custom input fields container */}
+                {!useDefaultResume && (
+                  <div style={{ 
+                    marginLeft: '8px', 
+                    padding: '12px', 
+                    borderLeft: '3px solid var(--color-primary)',
+                    backgroundColor: 'var(--bg-card)',
+                    borderRadius: '0 8px 8px 0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    animation: 'slideUp 0.2s ease forwards'
+                  }}>
+                    <div>
+                      <span className="form-label" style={{ fontSize: '11px', marginBottom: '4px', display: 'block' }}>Resume / CV File Name:</span>
+                      <input
+                        type="text"
+                        className="form-input"
+                        style={{ width: '100%', margin: 0, padding: '8px 12px', fontSize: '13px' }}
+                        placeholder="e.g. John_Lim_Software_Resume.pdf"
+                        value={customResumeName}
+                        onChange={e => setCustomResumeName(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <input
+                        type="file"
+                        id="modal-resume-file-input"
+                        accept=".pdf,.docx,.doc"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setCustomResumeName(e.target.files[0].name);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ padding: '6px 12px', fontSize: '11px' }}
+                        onClick={() => document.getElementById('modal-resume-file-input')?.click()}
+                      >
+                        Browse File...
+                      </button>
+                      
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer', color: 'var(--color-text-main)' }}>
+                        <input
+                          type="checkbox"
+                          checked={saveAsDefault}
+                          onChange={e => setSaveAsDefault(e.target.checked)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <span>Save as default resume in profile</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
             {applyJobFlow.screeningQuestions?.map((q, idx) => (
               <div className="form-group" key={idx}>
                 <span className="form-label">{idx + 1}. {q}</span>
                 <textarea className="form-input" rows={2} value={screeningAnswers[idx] || ''} onChange={e => setScreeningAnswers({ ...screeningAnswers, [idx]: e.target.value })} />
               </div>
             ))}
-            <div className="form-group">
-              <span className="form-label">Video Pitch URL (e.g. simulated_pitch.mp4):</span>
-              <input type="text" className="form-input" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} />
+            {/* Video Pitch Selection Section */}
+            <div className="form-group" style={{ 
+              border: '1px solid var(--color-border)', 
+              borderRadius: '10px', 
+              padding: '16px', 
+              backgroundColor: 'var(--bg-app)', 
+              marginBottom: '20px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '12px'
+            }}>
+              <span className="form-label" style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text-main)', fontSize: '14px' }}>
+                🎥 Video Pitch Selection
+              </span>
+              
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                {/* Radio 1: Use default */}
+                <label style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  cursor: 'pointer', 
+                  fontSize: '13px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: useDefaultVideo ? 'var(--color-primary-light, #eff6ff)' : 'transparent',
+                  border: useDefaultVideo ? '1px solid var(--color-primary)' : '1px solid transparent',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <input
+                    type="radio"
+                    name="videoType"
+                    checked={useDefaultVideo}
+                    onChange={() => setUseDefaultVideo(true)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div style={{ width: '100%', overflow: 'hidden' }}>
+                    <span style={{ fontWeight: useDefaultVideo ? 600 : 400 }}>Use default video pitch from profile</span>
+                    {profileVideo ? (
+                      <div style={{ fontSize: '11px', color: 'var(--color-primary)', marginTop: '2px', textOverflow: 'ellipsis', overflow: 'hidden', whiteSpace: 'nowrap', fontWeight: 500 }}>
+                        Active: <strong>{profileVideo}</strong>
+                      </div>
+                    ) : (
+                      <div style={{ fontSize: '11px', color: 'var(--status-rejected)', marginTop: '2px' }}>
+                        ⚠️ No default video pitch found on your profile. Please provide a custom one below.
+                      </div>
+                    )}
+                  </div>
+                </label>
+
+                {/* Radio 2: Custom video */}
+                <label style={{ 
+                  display: 'flex', 
+                  alignItems: 'center', 
+                  gap: '10px', 
+                  cursor: 'pointer', 
+                  fontSize: '13px',
+                  padding: '8px 12px',
+                  borderRadius: '6px',
+                  backgroundColor: !useDefaultVideo ? 'var(--color-primary-light, #eff6ff)' : 'transparent',
+                  border: !useDefaultVideo ? '1px solid var(--color-primary)' : '1px solid transparent',
+                  transition: 'all 0.2s ease'
+                }}>
+                  <input
+                    type="radio"
+                    name="videoType"
+                    checked={!useDefaultVideo}
+                    onChange={() => setUseDefaultVideo(false)}
+                    style={{ cursor: 'pointer' }}
+                  />
+                  <div>
+                    <span style={{ fontWeight: !useDefaultVideo ? 600 : 400 }}>Upload or enter a custom video pitch URL</span>
+                  </div>
+                </label>
+
+                {/* Custom input fields container */}
+                {!useDefaultVideo && (
+                  <div style={{ 
+                    marginLeft: '8px', 
+                    padding: '12px', 
+                    borderLeft: '3px solid var(--color-primary)',
+                    backgroundColor: 'var(--bg-card)',
+                    borderRadius: '0 8px 8px 0',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '10px',
+                    animation: 'slideUp 0.2s ease forwards'
+                  }}>
+                    <div>
+                      <span className="form-label" style={{ fontSize: '11px', marginBottom: '4px', display: 'block' }}>Video Pitch URL / File:</span>
+                      <input
+                        type="text"
+                        className="form-input"
+                        style={{ width: '100%', margin: 0, padding: '8px 12px', fontSize: '13px' }}
+                        placeholder="e.g. https://domain.com/pitch.mp4 or pitch.mp4"
+                        value={customVideoUrl}
+                        onChange={e => setCustomVideoUrl(e.target.value)}
+                      />
+                    </div>
+                    
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
+                      <input
+                        type="file"
+                        id="modal-video-file-input"
+                        accept="video/mp4,video/webm"
+                        style={{ display: 'none' }}
+                        onChange={(e) => {
+                          if (e.target.files && e.target.files[0]) {
+                            setCustomVideoUrl(e.target.files[0].name);
+                          }
+                        }}
+                      />
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        style={{ padding: '6px 12px', fontSize: '11px' }}
+                        onClick={() => document.getElementById('modal-video-file-input')?.click()}
+                      >
+                        Browse MP4...
+                      </button>
+                      
+                      <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer', color: 'var(--color-text-main)' }}>
+                        <input
+                          type="checkbox"
+                          checked={saveVideoAsDefault}
+                          onChange={e => setSaveVideoAsDefault(e.target.checked)}
+                          style={{ cursor: 'pointer' }}
+                        />
+                        <span>Save as default video in profile</span>
+                      </label>
+                    </div>
+                  </div>
+                )}
+              </div>
             </div>
             <div className="modal-buttons">
               <button className="btn btn-secondary" onClick={() => setApplyJobFlow(null)}>Cancel</button>
@@ -1730,6 +2469,25 @@ export const StudentPortal: React.FC = () => {
               >
                 Keep Tracking Here
               </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {videoPreviewUrl && (
+        <div className="modal-overlay">
+          <div className="modal-content" style={{ maxWidth: '600px', padding: '24px', textAlign: 'center' }}>
+            <h3 className="modal-title" style={{ fontSize: '18px', marginBottom: '16px' }}>📺 Video Pitch Preview</h3>
+            <div style={{ position: 'relative', width: '100%', borderRadius: '8px', overflow: 'hidden', backgroundColor: 'black', marginBottom: '16px' }}>
+              <video
+                src={videoPreviewUrl}
+                controls
+                autoPlay
+                style={{ width: '100%', display: 'block', maxHeight: '360px' }}
+              />
+            </div>
+            <div className="modal-buttons" style={{ justifyContent: 'center' }}>
+              <button className="btn btn-secondary" onClick={() => setVideoPreviewUrl(null)}>Close Preview</button>
             </div>
           </div>
         </div>

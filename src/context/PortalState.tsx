@@ -60,7 +60,8 @@ interface PortalContextType {
     studentId: string,
     sop: string,
     screeningAnswers: Record<string, string>,
-    videoUrl?: string
+    videoUrl?: string,
+    cvName?: string
   ) => void;
   withdrawApplication: (appId: string) => void;
   editApplication: (appId: string, cvName: string, sop: string, email: string, phone: string) => void;
@@ -518,7 +519,8 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     studentId: string,
     sop: string,
     screeningAnswers: Record<string, string>,
-    videoUrl?: string
+    videoUrl?: string,
+    cvName?: string
   ) => {
     const student = students.find(s => s.id === studentId);
     const job = jobs.find(j => j.id === jobId);
@@ -528,7 +530,7 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       studentId,
       submissionDate: new Date().toISOString().split('T')[0],
       status: 'Applied',
-      cvName: `${student?.name || 'Student'}_Resume.pdf`,
+      cvName: cvName || `${student?.name || 'Student'}_Resume.pdf`,
       statementOfPurpose: sop,
       contactEmail: student?.email || '',
       contactPhone: student?.phone || '',

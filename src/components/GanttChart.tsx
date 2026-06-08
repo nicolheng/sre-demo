@@ -10,14 +10,28 @@ interface GanttTask {
   details: string;
 }
 
-const mockTasks: GanttTask[] = [
-  { name: 'System Architecture Design', startPercent: 5, widthPercent: 20, actualStartPercent: 5, actualWidthPercent: 18, status: 'on-time', details: 'Setup codebase and TS templates.' },
-  { name: 'Interface Component Coding', startPercent: 25, widthPercent: 25, actualStartPercent: 25, actualWidthPercent: 32, status: 'slippage-minor', details: 'Delayed 3 days matching CSS variables.' },
-  { name: 'Database Integration & Rules', startPercent: 50, widthPercent: 30, actualStartPercent: 50, actualWidthPercent: 42, status: 'slippage-critical', details: 'Delayed 7 days on security configurations.' },
-  { name: 'Compliance Checklist Testing', startPercent: 80, widthPercent: 15, actualStartPercent: 92, actualWidthPercent: 8, status: 'slippage-minor', details: 'Awaiting coordinator feedback.' }
-];
+interface GanttChartProps {
+  studentId?: string;
+}
 
-export const GanttChart: React.FC = () => {
+const studentTasks: Record<string, GanttTask[]> = {
+  s1: [
+    { name: 'System Architecture Design', startPercent: 5, widthPercent: 20, actualStartPercent: 5, actualWidthPercent: 18, status: 'on-time', details: 'Setup codebase and TS templates.' },
+    { name: 'Interface Component Coding', startPercent: 25, widthPercent: 25, actualStartPercent: 25, actualWidthPercent: 32, status: 'slippage-minor', details: 'Delayed 3 days matching CSS variables.' },
+    { name: 'Database Integration & Rules', startPercent: 50, widthPercent: 30, actualStartPercent: 50, actualWidthPercent: 42, status: 'slippage-critical', details: 'Delayed 7 days on security configurations.' },
+    { name: 'Compliance Checklist Testing', startPercent: 80, widthPercent: 15, actualStartPercent: 92, actualWidthPercent: 8, status: 'slippage-minor', details: 'Awaiting coordinator feedback.' }
+  ],
+  s2: [
+    { name: 'Figma Wireframing & UX Research', startPercent: 10, widthPercent: 25, actualStartPercent: 10, actualWidthPercent: 25, status: 'on-time', details: 'Designed 12 core screens and interactive prototypes.' },
+    { name: 'Design System Tokens Mapping', startPercent: 35, widthPercent: 20, actualStartPercent: 35, actualWidthPercent: 20, status: 'on-time', details: 'Mapped standard colors and responsive layout tokens.' },
+    { name: 'Frontend React UI Assembly', startPercent: 55, widthPercent: 25, actualStartPercent: 55, actualWidthPercent: 30, status: 'slippage-minor', details: 'Delayed 2 days on grid alignment and browser testing.' },
+    { name: 'Usability User Feedback Phase', startPercent: 80, widthPercent: 15, actualStartPercent: 80, actualWidthPercent: 15, status: 'on-time', details: 'Evaluating design usability with 5 pilot student testers.' }
+  ]
+};
+
+export const GanttChart: React.FC<GanttChartProps> = ({ studentId = 's1' }) => {
+  const tasks = studentTasks[studentId] || studentTasks['s1'];
+
   return (
     <div className="gantt-chart">
       <div className="gantt-timeline-header">
@@ -31,7 +45,7 @@ export const GanttChart: React.FC = () => {
         </div>
       </div>
       
-      {mockTasks.map(task => {
+      {tasks.map(task => {
         return (
           <div className="gantt-row" key={task.name} style={{ borderBottom: '1px solid var(--color-border)', padding: '12px 0' }}>
             <div className="gantt-task-name">
