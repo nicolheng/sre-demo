@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PortalProvider, usePortal } from './context/PortalState';
 import StudentPortal from './roles/StudentPortal';
 import EmployerPortal from './roles/EmployerPortal';
@@ -6,6 +6,7 @@ import LecturerPortal from './roles/LecturerPortal';
 import CareerCentre from './roles/CareerCentre';
 import MobileFrame from './components/MobileFrame';
 import AuthPortal from './components/AuthPortal';
+import PublicLandingPage from './components/PublicLandingPage';
 
 const PortalShell: React.FC = () => {
   const { 
@@ -14,11 +15,26 @@ const PortalShell: React.FC = () => {
     currentRole, 
     activeSubpage, 
     setActiveSubpage,
-    logout 
+    logout,
+    publicJobId,
+    setPublicJobId
   } = usePortal();
   
   // Toggle for Student Mobile View Simulator
   const [mobilePreview, setMobilePreview] = useState(false);
+
+  // Detect shared tracking link parameters on startup
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const jobIdParam = params.get('jobId');
+    if (jobIdParam) {
+      setPublicJobId(jobIdParam);
+    }
+  }, [setPublicJobId]);
+
+  if (publicJobId) {
+    return <PublicLandingPage />;
+  }
 
   if (!isAuthenticated || !loggedInUser) {
     return <AuthPortal />;
@@ -53,10 +69,9 @@ const PortalShell: React.FC = () => {
             { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
             { id: 'jobs', icon: '📝', label: 'Job Postings' },
             { id: 'candidates', icon: '👥', label: 'Candidates' },
-            { id: 'shortlisted', icon: '⭐', label: 'Shortlisted' },
             { id: 'interviews', icon: '📅', label: 'Interviews' },
-            { id: 'ai-recs', icon: '🤖', label: 'AI Recommendations' },
             { id: 'messages', icon: '💬', label: 'Messages' },
+            { id: 'collaboration', icon: '🤝', label: 'Oversight & Collaboration' },
             { id: 'reports', icon: '📊', label: 'Reports & Analytics' },
             { id: 'settings', icon: '⚙️', label: 'Settings' }
           ]
@@ -72,6 +87,7 @@ const PortalShell: React.FC = () => {
             { id: 'reports', icon: '📋', label: 'Internship Reports' },
             { id: 'planning', icon: '📅', label: 'Project Planning' },
             { id: 'monitoring', icon: '📊', label: 'Progress Monitoring' },
+            { id: 'collaboration', icon: '🤝', label: 'Collaboration Space' },
             { id: 'messages', icon: '💬', label: 'Messages' },
             { id: 'profile', icon: '👤', label: 'Profile' },
             { id: 'settings', icon: '⚙️', label: 'Settings' }
@@ -84,9 +100,10 @@ const PortalShell: React.FC = () => {
           links: [
             { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
             { id: 'approvals', icon: '🛡️', label: 'Job Approvals' },
-            { id: 'verification', icon: '🏢', label: 'Employer Verification' },
+            { id: 'verification', icon: '🏢', label: 'Employer Profiles' },
             { id: 'compliance', icon: '📋', label: 'Compliance Matrix' },
             { id: 'liaison', icon: '🌐', label: 'Liaison Flags' },
+            { id: 'collaboration', icon: '🤝', label: 'Oversight & Collaboration' },
             { id: 'reports', icon: '📊', label: 'Reports & Analytics' },
             { id: 'settings', icon: '⚙️', label: 'Settings' }
           ]

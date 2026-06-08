@@ -44,6 +44,8 @@ export const StudentPortal: React.FC = () => {
   const [sop, setSop] = useState('');
   const [screeningAnswers, setScreeningAnswers] = useState<Record<string, string>>({});
   const [videoUrl, setVideoUrl] = useState('');
+  const [fypThesisTitle, setFypThesisTitle] = useState('');
+  const [fypAdvisorName, setFypAdvisorName] = useState('');
 
   // Logbook form state
   const [hours, setHours] = useState<number>(8);
@@ -184,11 +186,21 @@ export const StudentPortal: React.FC = () => {
   const progressPercent = Math.min(Math.round((totalHours / 120) * 100), 100);
 
   const handleApply = (job: Job) => {
-    applyForJob(job.id, studentId, sop, screeningAnswers, videoUrl);
+    applyForJob(
+      job.id,
+      studentId,
+      sop,
+      screeningAnswers,
+      videoUrl,
+      job.isFypCollaboration ? fypThesisTitle : undefined,
+      job.isFypCollaboration ? fypAdvisorName : undefined
+    );
     setApplyJobFlow(null);
     setSop('');
     setScreeningAnswers({});
     setVideoUrl('');
+    setFypThesisTitle('');
+    setFypAdvisorName('');
     setActiveSubpage('applications');
   };
 
@@ -580,7 +592,14 @@ export const StudentPortal: React.FC = () => {
                             <div key={job.id} className={`dashboard-card ${hasMatchingTags ? 'recommend-card-gold' : ''}`} style={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', margin: 0, border: '1px solid var(--color-border)', borderRadius: '12px', padding: '16px', cursor: 'pointer' }} onClick={() => setViewJobModal(job)}>
                               <div>
                                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                                  <span style={{ fontSize: '24px' }}>🏢</span>
+                                  <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                                    <span style={{ fontSize: '24px' }}>🏢</span>
+                                    {job.isFypCollaboration && (
+                                      <span className="badge badge-shortlisted" style={{ fontSize: '10px', backgroundColor: 'hsl(265, 80%, 94%)', color: 'var(--color-primary)', border: '1px solid hsl(265, 80%, 85%)' }}>
+                                        🎓 Combined FYP
+                                      </span>
+                                    )}
+                                  </div>
                                   <span className="badge badge-applied" style={{ fontSize: '10px' }}>{job.duration}</span>
                                 </div>
                                 <h4 style={{ fontSize: '15px', fontWeight: 'bold', margin: '0 0 4px 0' }}>{job.title}</h4>
@@ -647,6 +666,30 @@ export const StudentPortal: React.FC = () => {
                     </h4>
                     <Stepper status={app.status} />
                   </div>
+
+                  {job?.isFypCollaboration && (
+                    <div className="dashboard-card" style={{ borderLeft: '4px solid var(--color-primary)', backgroundColor: 'hsl(265, 80%, 98%)', marginTop: '20px' }}>
+                      <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '12px', color: 'var(--color-primary)' }}>🎓 Combined FYP Supervision Details</h4>
+                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '16px' }}>
+                        <div>
+                          <p style={{ fontSize: '13px', marginBottom: '4px' }}><strong>Proposed Thesis Title:</strong></p>
+                          <p style={{ fontSize: '13px', color: 'var(--color-text-main)', fontWeight: 600 }}>{app.fypThesisTitle || 'Not specified'}</p>
+                        </div>
+                        <div>
+                          <p style={{ fontSize: '13px', marginBottom: '4px' }}><strong>Academic Advisor:</strong></p>
+                          <p style={{ fontSize: '13px', color: 'var(--color-text-main)', fontWeight: 600 }}>{app.fypAdvisorName || 'Not assigned'}</p>
+                        </div>
+                      </div>
+                      <div style={{ marginTop: '12px', borderTop: '1px solid var(--color-border)', paddingTop: '8px' }}>
+                        <span style={{ fontSize: '11.5px', fontWeight: 700, textTransform: 'uppercase', color: 'var(--color-text-muted)' }}>Corporate Research Milestones Mapped:</span>
+                        <ul style={{ margin: '6px 0 0 16px', padding: 0, fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '4px' }}>
+                          {job?.fypMilestones?.map((m, idx) => (
+                            <li key={idx}><strong>M{idx + 1}:</strong> {m}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  )}
 
                   {app.status === 'Interview' && (
                     <div className="international-banner" style={{ background: 'hsl(45, 93%, 95%)', borderLeft: '5px solid var(--status-interview)' }}>
@@ -1601,7 +1644,14 @@ export const StudentPortal: React.FC = () => {
                   {hasMatchingTags && <span className="recommend-badge">⭐ Recommended Match</span>}
                   <div>
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                      <span style={{ fontSize: '28px' }}>🏢</span>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                        <span style={{ fontSize: '28px' }}>🏢</span>
+                        {job.isFypCollaboration && (
+                          <span className="badge badge-shortlisted" style={{ fontSize: '10px', backgroundColor: 'hsl(265, 80%, 94%)', color: 'var(--color-primary)', border: '1px solid hsl(265, 80%, 85%)' }}>
+                            🎓 Combined FYP
+                          </span>
+                        )}
+                      </div>
                       <span className="badge badge-applied">{job.duration}</span>
                     </div>
                     <h4 style={{ fontSize: '16px', fontWeight: 'bold' }}>{job.title}</h4>
@@ -1631,12 +1681,32 @@ export const StudentPortal: React.FC = () => {
       {viewJobModal && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '600px' }}>
-            <h3 className="modal-title">{viewJobModal.title}</h3>
-            <h4 style={{ color: 'var(--color-primary)', marginBottom: '16px' }}>{viewJobModal.companyName}</h4>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
+              <div>
+                <h3 className="modal-title">{viewJobModal.title}</h3>
+                <h4 style={{ color: 'var(--color-primary)', marginBottom: '16px' }}>{viewJobModal.companyName}</h4>
+              </div>
+              {viewJobModal.isFypCollaboration && (
+                <span className="badge" style={{ backgroundColor: 'hsl(265, 80%, 94%)', color: 'var(--color-primary)', border: '1px solid hsl(265, 80%, 85%)', fontSize: '12px', padding: '4px 10px', display: 'flex', alignItems: 'center', gap: '4px' }}>
+                  🎓 FYP Collaboration
+                </span>
+              )}
+            </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', fontSize: '14px', marginBottom: '24px' }}>
               <div><strong>Duration:</strong> {viewJobModal.duration}</div>
               <div><strong>Scope:</strong><p style={{ fontSize: '13px', color: 'var(--color-text-muted)' }}>{viewJobModal.scope}</p></div>
               <div><strong>Required Skills:</strong><div style={{ display: 'flex', gap: '6px' }}>{viewJobModal.requiredSkills.map(s => <span key={s} className="badge badge-applied">{s}</span>)}</div></div>
+              
+              {viewJobModal.isFypCollaboration && viewJobModal.fypMilestones && (
+                <div style={{ marginTop: '12px', padding: '12px', borderLeft: '3px solid var(--color-primary)', backgroundColor: 'hsl(265, 80%, 98%)', borderRadius: '0 6px 6px 0' }}>
+                  <h5 style={{ margin: '0 0 8px 0', fontWeight: 700, fontSize: '13px', color: 'var(--color-primary)' }}>🎓 Academic Research Milestones Mapped:</h5>
+                  <ul style={{ margin: '0 0 0 16px', padding: 0, fontSize: '12px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                    {viewJobModal.fypMilestones.map((milestone, idx) => (
+                      <li key={idx}><strong>Milestone {idx + 1}:</strong> {milestone}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
             </div>
             <div className="modal-buttons">
               <button className="btn btn-secondary" onClick={() => setViewJobModal(null)}>Close</button>
@@ -1682,6 +1752,17 @@ export const StudentPortal: React.FC = () => {
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '600px', maxHeight: '90vh', overflowY: 'auto' }}>
             <h3 className="modal-title">Apply for {applyJobFlow.title}</h3>
+            <h4 style={{ color: 'var(--color-primary)', fontSize: '13px', margin: '-10px 0 16px 0' }}>{applyJobFlow.companyName}</h4>
+            
+            {applyJobFlow.isFypCollaboration && (
+              <div style={{ padding: '12px 16px', backgroundColor: 'hsl(265, 80%, 97%)', border: '1px solid hsl(265, 80%, 90%)', borderRadius: '8px', marginBottom: '16px' }}>
+                <span style={{ fontSize: '13px', fontWeight: 700, color: 'var(--color-primary)', display: 'block', marginBottom: '4px' }}>🎓 Combined FYP Collaboration Opportunity</span>
+                <span style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', lineHeight: '1.4' }}>
+                  This posting links your industry placement directly with your academic research. Please specify your proposed thesis topic and academic supervisor below. Milestones configured by the employer will align with your course evaluation structure.
+                </span>
+              </div>
+            )}
+
             <div className="form-group">
               <span className="form-label">Statement of Purpose:</span>
               <textarea className="form-input" rows={3} value={sop} onChange={e => setSop(e.target.value)} />
@@ -1692,13 +1773,58 @@ export const StudentPortal: React.FC = () => {
                 <textarea className="form-input" rows={2} value={screeningAnswers[idx] || ''} onChange={e => setScreeningAnswers({ ...screeningAnswers, [idx]: e.target.value })} />
               </div>
             ))}
-            <div className="form-group">
+
+            {applyJobFlow.isFypCollaboration && (
+              <div style={{ borderTop: '1px solid var(--color-border)', paddingTop: '16px', marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                <h5 style={{ margin: 0, fontWeight: 700, fontSize: '13px' }}>Academic Supervision Integration</h5>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <span className="form-label">Proposed Thesis / Project Title *</span>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="e.g. Distributed Ledger Systems for Smart Supply Chain Logistics"
+                    value={fypThesisTitle}
+                    onChange={e => setFypThesisTitle(e.target.value)}
+                    required
+                  />
+                </div>
+                <div className="form-group" style={{ marginBottom: 0 }}>
+                  <span className="form-label">Assigned Academic Advisor Name *</span>
+                  <input 
+                    type="text" 
+                    className="form-input" 
+                    placeholder="e.g. Dr. Lim Wei Ming"
+                    value={fypAdvisorName}
+                    onChange={e => setFypAdvisorName(e.target.value)}
+                    required
+                  />
+                </div>
+                <label style={{ display: 'flex', alignItems: 'flex-start', gap: '8px', fontSize: '11.5px', marginTop: '4px', cursor: 'pointer' }}>
+                  <input type="checkbox" required style={{ marginTop: '2px' }} />
+                  <span>I agree to align the corporate milestones (Literature Review, Mid-term Prototype, Final Defense) with my academic timeline under supervisor validation.</span>
+                </label>
+              </div>
+            )}
+
+            <div className="form-group" style={{ marginTop: '16px' }}>
               <span className="form-label">Video Pitch URL (e.g. simulated_pitch.mp4):</span>
               <input type="text" className="form-input" value={videoUrl} onChange={e => setVideoUrl(e.target.value)} />
             </div>
-            <div className="modal-buttons">
+            
+            <div className="modal-buttons" style={{ borderTop: '1px solid var(--color-border)', paddingTop: '16px', marginTop: '20px' }}>
               <button className="btn btn-secondary" onClick={() => setApplyJobFlow(null)}>Cancel</button>
-              <button className="btn btn-primary" onClick={() => handleApply(applyJobFlow)}>Submit</button>
+              <button 
+                className="btn btn-primary" 
+                onClick={() => {
+                  if (applyJobFlow.isFypCollaboration && (!fypThesisTitle || !fypAdvisorName)) {
+                    alert('Please fill in both Proposed Thesis Title and Academic Advisor Name.');
+                    return;
+                  }
+                  handleApply(applyJobFlow);
+                }}
+              >
+                Submit Application
+              </button>
             </div>
           </div>
         </div>

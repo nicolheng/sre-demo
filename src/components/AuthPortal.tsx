@@ -5,8 +5,22 @@ import type { UserRole } from '../context/PortalState';
 export const AuthPortal: React.FC = () => {
   const { login, register } = usePortal();
 
-  // Mode state: 'login' | 'register'
-  const [authMode, setAuthMode] = useState<'login' | 'register'>('login');
+  // Mode state: 'login' | 'register' | 'forgot'
+  const [authMode, setAuthMode] = useState<'login' | 'register' | 'forgot'>('login');
+
+  // Recovery form state
+  const [recoveryEmail, setRecoveryEmail] = useState('');
+  const [recoverySuccess, setRecoverySuccess] = useState(false);
+
+  // Handle Recovery Submit
+  const handleRecoverySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!recoveryEmail) {
+      alert('Please enter an email address.');
+      return;
+    }
+    setRecoverySuccess(true);
+  };
 
   // Login form state
   const [loginEmail, setLoginEmail] = useState('john.lim@university.edu.my');
@@ -421,85 +435,129 @@ export const AuthPortal: React.FC = () => {
       {/* Right Column - Login Form */}
       <div className="auth-right-panel">
         <div className="login-box-container">
-          <form onSubmit={handleLoginSubmit} style={{ width: '100%' }}>
-            <h1 className="auth-form-title">Welcome Back!</h1>
-            <p className="auth-form-subtitle">Login to your account to continue.</p>
+          {authMode === 'forgot' ? (
+            <form onSubmit={handleRecoverySubmit} style={{ width: '100%' }}>
+              <h1 className="auth-form-title">Reset Your Password</h1>
+              <p className="auth-form-subtitle">Enter your registered email address below, and we will send you a secure link to reset your password.</p>
 
-            <div className="form-group">
-              <label className="form-label">Email Address</label>
-              <input
-                type="email"
-                className="form-input"
-                placeholder="Enter your email"
-                value={loginEmail}
-                onChange={(e) => setLoginEmail(e.target.value)}
-                required
-              />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">Role Profile</label>
-              <select
-                className="form-input"
-                value={loginRole}
-                onChange={(e) => setLoginRole(e.target.value as UserRole)}
-              >
-                <option value="Student">🧑‍🎓 Student</option>
-                <option value="Employer">🏢 Employer HR</option>
-                <option value="Lecturer">🧑‍🏫 Lecturer Supervisor</option>
-                <option value="CareerCentre">🛡️ Career Center Staff</option>
-              </select>
-            </div>
-
-            <div className="form-group password-field-group">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <label className="form-label">Password</label>
-                <span className="auth-link-text" style={{ fontSize: '12px' }}>
-                  Forgot Password?
-                </span>
-              </div>
-              <div className="password-input-wrapper">
+              <div className="form-group" style={{ marginTop: '20px' }}>
+                <label className="form-label">Email Address</label>
                 <input
-                  type={showLoginPassword ? 'text' : 'password'}
+                  type="email"
                   className="form-input"
-                  placeholder="Enter your password"
-                  value={loginPassword}
-                  onChange={(e) => setLoginPassword(e.target.value)}
+                  placeholder="Enter your email"
+                  value={recoveryEmail}
+                  onChange={(e) => setRecoveryEmail(e.target.value)}
                   required
                 />
-                <button
-                  type="button"
-                  className="password-toggle-btn"
-                  onClick={() => setShowLoginPassword(!showLoginPassword)}
-                >
-                  {showLoginPassword ? '👁️' : '👁️‍🗨️'}
-                </button>
               </div>
-            </div>
 
-            <button type="submit" className="btn btn-primary btn-auth-submit" style={{ marginTop: '8px' }}>
-              Login
-            </button>
+              <button type="submit" className="btn btn-primary btn-auth-submit" style={{ marginTop: '16px' }}>
+                Send Reset Link
+              </button>
 
-            <div className="or-divider">
-              <span>or</span>
-            </div>
+              {recoverySuccess && (
+                <div style={{ marginTop: '16px', padding: '12px', backgroundColor: 'hsl(142, 76%, 95%)', border: '1px solid var(--status-offered)', borderRadius: '8px', color: '#16a34a', fontSize: '12.5px', fontWeight: 600, textAlign: 'center' }}>
+                  ✓ A secure password reset link has been sent to <strong>{recoveryEmail}</strong>.
+                </div>
+              )}
 
-            <button
-              type="button"
-              className="btn btn-secondary google-btn"
-              onClick={() => triggerQuickLogin(loginEmail, loginRole)}
-            >
-              <span className="google-icon-mock">G</span> Continue with Google
-            </button>
+              <p className="auth-mode-switch-text" style={{ marginTop: '24px' }}>
+                Remember your password?{' '}
+                <span className="auth-link-text" onClick={() => setAuthMode('login')}>
+                  Back to Login
+                </span>
+              </p>
+            </form>
+          ) : (
+            <form onSubmit={handleLoginSubmit} style={{ width: '100%' }}>
+              <h1 className="auth-form-title">Welcome Back!</h1>
+              <p className="auth-form-subtitle">Login to your account to continue.</p>
 
-            <p className="auth-mode-switch-text" style={{ marginTop: '24px' }}>
-              Don't have an account?{' '}
-              <span className="auth-link-text" onClick={() => setAuthMode('register')}>
-                Register
-              </span>
-            </p>
-          </form>
+              <div className="form-group">
+                <label className="form-label">Email Address</label>
+                <input
+                  type="email"
+                  className="form-input"
+                  placeholder="Enter your email"
+                  value={loginEmail}
+                  onChange={(e) => setLoginEmail(e.target.value)}
+                  required
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Role Profile</label>
+                <select
+                  className="form-input"
+                  value={loginRole}
+                  onChange={(e) => setLoginRole(e.target.value as UserRole)}
+                >
+                  <option value="Student">🧑‍🎓 Student</option>
+                  <option value="Employer">🏢 Employer HR</option>
+                  <option value="Lecturer">🧑‍🏫 Lecturer Supervisor</option>
+                  <option value="CareerCentre">🛡️ Career Center Staff</option>
+                </select>
+              </div>
+
+              <div className="form-group password-field-group">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <label className="form-label">Password</label>
+                  <span 
+                    className="auth-link-text" 
+                    style={{ fontSize: '12px', cursor: 'pointer' }}
+                    onClick={() => {
+                      setAuthMode('forgot');
+                      setRecoverySuccess(false);
+                      setRecoveryEmail('');
+                    }}
+                  >
+                    Forgot Password?
+                  </span>
+                </div>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showLoginPassword ? 'text' : 'password'}
+                    className="form-input"
+                    placeholder="Enter your password"
+                    value={loginPassword}
+                    onChange={(e) => setLoginPassword(e.target.value)}
+                    required
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowLoginPassword(!showLoginPassword)}
+                  >
+                    {showLoginPassword ? '👁️' : '👁️‍🗨️'}
+                  </button>
+                </div>
+              </div>
+
+              <button type="submit" className="btn btn-primary btn-auth-submit" style={{ marginTop: '8px' }}>
+                Login
+              </button>
+
+              <div className="or-divider">
+                <span>or</span>
+              </div>
+
+              <button
+                type="button"
+                className="btn btn-secondary google-btn"
+                onClick={() => triggerQuickLogin(loginEmail, loginRole)}
+              >
+                <span className="google-icon-mock">G</span> Continue with Google
+              </button>
+
+              <p className="auth-mode-switch-text" style={{ marginTop: '24px' }}>
+                Don't have an account?{' '}
+                <span className="auth-link-text" onClick={() => setAuthMode('register')}>
+                  Register
+                </span>
+              </p>
+            </form>
+          )}
 
           {/* Quick Demo Login Autofill profiles (extremely user friendly!) */}
           <div className="quick-login-profiles-box">
