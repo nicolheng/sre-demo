@@ -637,7 +637,11 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setJobs(prev => [...prev, job]);
     
     // Log action
-    logAction('Company HR', `Created Job Posting "${job.title}" (Pending Approval).`);
+    if (job.isDraft) {
+      logAction('Company HR', `Saved Draft Job Posting "${job.title}".`);
+    } else {
+      logAction('Company HR', `Created Job Posting "${job.title}" (Pending Approval).`);
+    }
   };
 
   // Action: Update Job

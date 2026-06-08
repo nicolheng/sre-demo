@@ -71,6 +71,8 @@ export const EmployerPortal: React.FC = () => {
   const [fypMilestone1, setFypMilestone1] = useState('');
   const [fypMilestone2, setFypMilestone2] = useState('');
   const [fypMilestone3, setFypMilestone3] = useState('');
+  const [clonedIdCode, setClonedIdCode] = useState<string | null>(null);
+  const [submitType, setSubmitType] = useState<'draft' | 'publish'>('publish');
 
   // Clear job form helper
   const clearJobForm = () => {
@@ -89,6 +91,7 @@ export const EmployerPortal: React.FC = () => {
     setFypMilestone1('');
     setFypMilestone2('');
     setFypMilestone3('');
+    setClonedIdCode(null);
   };
 
   // Populate job form helper
@@ -213,7 +216,9 @@ export const EmployerPortal: React.FC = () => {
     e.preventDefault();
     if (!jobTitle || !jobScope || !jobSkills) return;
     
-    if (!employerVerifications[companyId]) {
+    const isDraft = submitType === 'draft';
+    
+    if (!isDraft && !employerVerifications[companyId]) {
       alert("⚠️ Verification Blocked: Your company profile is currently Unverified. Job postings are restricted. Please contact Career Center.");
       return;
     }
@@ -234,10 +239,15 @@ export const EmployerPortal: React.FC = () => {
         screeningQuestions: screeningQuestions,
         videoDurationLimit: videoLimit,
         isFypCollaboration,
-        fypMilestones
+        fypMilestones,
+        isDraft
       });
-      setJobToast(true);
-      setTimeout(() => setJobToast(false), 3000);
+      if (isDraft) {
+        alert('✓ Job draft saved successfully.');
+      } else {
+        setJobToast(true);
+        setTimeout(() => setJobToast(false), 3000);
+      }
     } else if (jobModalMode === 'edit' && editingJobId) {
       updateJob(editingJobId, {
         title: jobTitle,
@@ -249,9 +259,10 @@ export const EmployerPortal: React.FC = () => {
         screeningQuestions: screeningQuestions,
         videoDurationLimit: videoLimit,
         isFypCollaboration,
-        fypMilestones
+        fypMilestones,
+        isDraft
       });
-      alert('✓ Job posting updated successfully.');
+      alert(isDraft ? '✓ Job draft updated successfully.' : '✓ Job posting updated and published successfully.');
     }
     
     setIsJobModalOpen(false);
@@ -861,7 +872,9 @@ export const EmployerPortal: React.FC = () => {
                       <td><strong>{jobAppsCount}</strong> applied</td>
                       <td>{job.deadline}</td>
                       <td>
-                        {job.isApproved ? (
+                        {job.isDraft ? (
+                          <span className="badge badge-awaiting" style={{ backgroundColor: '#e2e8f0', color: '#475569', border: '1px solid #cbd5e1' }}>⏳ Draft</span>
+                        ) : job.isApproved ? (
                           <span className="badge badge-approved">✓ Active</span>
                         ) : job.rejectionReason ? (
                           <span 
@@ -904,12 +917,13 @@ export const EmployerPortal: React.FC = () => {
                             style={{ padding: '4px 10px', fontSize: '11px', borderRadius: '4px' }}
                             onClick={() => {
                               populateJobForm(job);
-                              setJobModalMode('create'); // Duplicate copies it to create modal
+                              setJobModalMode('create'); 
                               setEditingJobId(null);
+                              setClonedIdCode('CLONE-' + Math.random().toString(36).substring(2, 7).toUpperCase());
                               setIsJobModalOpen(true);
                             }}
                           >
-                            Duplicate
+                            Clone Posting
                           </button>
                           <button 
                             className="btn btn-secondary" 
@@ -1757,6 +1771,7 @@ export const EmployerPortal: React.FC = () => {
                           // Keep modal mode as create
                           setJobModalMode('create');
                           setEditingJobId(null);
+                          setClonedIdCode('CLONE-' + Math.random().toString(36).substring(2, 7).toUpperCase());
                         }}
                       >
                         <div style={{ fontWeight: 700 }}>{pastJob.title}</div>
@@ -1775,6 +1790,20 @@ export const EmployerPortal: React.FC = () => {
               {/* Right Column: Configuration Form */}
               <div style={{ flex: 1, overflowY: 'auto', paddingRight: '4px' }}>
                 <form onSubmit={handlePostJob}>
+                  {clonedIdCode && (
+                    <div className="form-group" style={{ backgroundColor: 'var(--color-primary-light)', padding: '12px', borderRadius: '6px', border: '1px solid var(--color-primary)', marginBottom: '16px' }}>
+                      <span className="form-label" style={{ margin: 0, fontWeight: 700, display: 'inline-flex', alignItems: 'center', gap: '6px' }}>
+                        🔑 Unique Clone Identifier Code:
+                      </span>
+                      <span style={{ fontFamily: 'monospace', fontSize: '13px', fontWeight: 'bold', color: 'var(--color-primary)', marginLeft: '8px' }}>
+                        {clonedIdCode}
+                      </span>
+                      <span style={{ display: 'block', fontSize: '11px', color: 'var(--color-text-muted)', marginTop: '4px' }}>
+                        This code uniquely tracks templates duplicated from historical postings.
+                      </span>
+                    </div>
+                  )}
+
                   <div className="form-group">
                     <span className="form-label">Job Title *</span>
                     <input 
@@ -2041,9 +2070,22 @@ export const EmployerPortal: React.FC = () => {
                       {jobModalMode === 'view' ? 'Close' : 'Cancel'}
                     </button>
                     {jobModalMode !== 'view' && (
-                      <button type="submit" className="btn btn-primary">
-                        {jobModalMode === 'create' ? 'Publish Listing' : 'Save Changes'}
-                      </button>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        <button 
+                          type="submit" 
+                          className="btn btn-secondary"
+                          onClick={() => setSubmitType('draft')}
+                        >
+                          💾 Save as Draft
+                        </button>
+                        <button 
+                          type="submit" 
+                          className="btn btn-primary"
+                          onClick={() => setSubmitType('publish')}
+                        >
+                          {jobModalMode === 'create' ? '🚀 Publish Listing' : '✓ Save & Publish'}
+                        </button>
+                      </div>
                     )}
                   </div>
                 </form>
