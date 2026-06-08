@@ -29,6 +29,7 @@ export interface Job {
   logo: string;
   isFypCollaboration?: boolean;
   fypMilestones?: string[];
+  isDraft?: boolean;
 }
 
 export interface Application {

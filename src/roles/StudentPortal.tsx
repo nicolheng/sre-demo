@@ -560,7 +560,7 @@ export const StudentPortal: React.FC = () => {
                   {/* Suggestion list */}
                   {(() => {
                     const filteredSuggestions = jobs
-                      .filter(j => j.isApproved)
+                      .filter(j => j.isApproved && !j.isDraft)
                       .filter(j => {
                         if (!jobQuery) return true;
                         const query = jobQuery.toLowerCase();

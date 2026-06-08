@@ -72,7 +72,7 @@ export const CareerCentre: React.FC = () => {
   // Placements clearance metric calculations
   const approvedPlacements = applications.filter(a => a.status === 'Approved').length;
   const activePostings = jobs.filter(j => j.isApproved).length;
-  const pendingJobs = jobs.filter(j => !j.isApproved && !j.rejectionReason);
+  const pendingJobs = jobs.filter(j => !j.isApproved && !j.rejectionReason && !j.isDraft);
 
   // Metrics calculations for Career Centre Dashboard
   const totalStudents = students.length;
