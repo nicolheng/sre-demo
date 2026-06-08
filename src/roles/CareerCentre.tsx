@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePortal } from '../context/PortalState';
 import SVGChart from '../components/SVGChart';
 
@@ -540,8 +541,8 @@ export const CareerCentre: React.FC = () => {
             </div>
 
             {/* Employer Details Dossier Modal */}
-            {selectedEmployer && (
-              <div className="modal-overlay" style={{ top: '70px', zIndex: 9999 }}>
+            {selectedEmployer && createPortal(
+              <div className="modal-overlay" style={{ zIndex: 9999 }}>
                 <div 
                   className="modal-content" 
                   style={{ 
@@ -717,7 +718,8 @@ export const CareerCentre: React.FC = () => {
                   </div>
 
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
 
           </div>
@@ -1539,8 +1541,8 @@ export const CareerCentre: React.FC = () => {
       )}
 
       {/* REJECT POSTING MODAL */}
-      {rejectingJobId && (
-        <div className="modal-overlay" style={{ top: '70px', zIndex: 9999 }}>
+      {rejectingJobId && createPortal(
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
           <div className="modal-content">
             <h3 className="modal-title" style={{ color: 'var(--status-rejected)' }}>Reject Internship Posting</h3>
             <textarea className="form-input" rows={3} placeholder="Provide mandatory rejection reason..." value={rejectReason} onChange={e => setRejectReason(e.target.value)} />
@@ -1549,11 +1551,12 @@ export const CareerCentre: React.FC = () => {
               <button className="btn btn-danger" onClick={() => { if (rejectReason) { rejectJob(rejectingJobId, rejectReason); setRejectingJobId(null); setRejectReason(''); } }}>Confirm Rejection</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
-      {failPillar && (
-        <div className="modal-overlay" style={{ top: '70px', zIndex: 9999 }}>
+      {failPillar && createPortal(
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
           <div className="modal-content">
             <h3 className="modal-title" style={{ color: 'var(--status-rejected)' }}>Verification Failure Reason</h3>
             <textarea className="form-input" rows={3} placeholder="Specify failure reason..." value={failReason} onChange={e => setFailReason(e.target.value)} />
@@ -1562,12 +1565,13 @@ export const CareerCentre: React.FC = () => {
               <button className="btn btn-danger" onClick={submitFailReason} disabled={!failReason}>Confirm Failure</button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* REJECT EMPLOYER VERIFICATION MODAL */}
-      {rejectingEmployerId && (
-        <div className="modal-overlay" style={{ top: '70px', zIndex: 9999 }}>
+      {rejectingEmployerId && createPortal(
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
           <div className="modal-content">
             <h3 className="modal-title" style={{ color: 'var(--status-rejected)' }}>Reject Employer Verification</h3>
             <textarea 
@@ -1593,7 +1597,8 @@ export const CareerCentre: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );

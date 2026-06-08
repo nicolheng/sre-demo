@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { usePortal } from '../context/PortalState';
 import SVGChart from '../components/SVGChart';
 
@@ -1530,7 +1531,7 @@ export const EmployerPortal: React.FC = () => {
             </div>
 
             {/* Upload Blueprint Modal */}
-            {isBlueprintModalOpen && (
+            {isBlueprintModalOpen && createPortal(
               <div className="modal-overlay">
                 <div className="modal-content" style={{ maxWidth: '450px' }}>
                   <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>📤 Upload Shared Program Blueprint</h3>
@@ -1578,7 +1579,8 @@ export const EmployerPortal: React.FC = () => {
                     </button>
                   </div>
                 </div>
-              </div>
+              </div>,
+              document.body
             )}
 
           </div>
@@ -1719,8 +1721,8 @@ export const EmployerPortal: React.FC = () => {
       )}
 
       {/* JOB CONFIGURATION MODAL (FR-15 / PB-44 / PB-45 / FR-04 / PB-17 / FR-21 / PB-32) */}
-      {isJobModalOpen && (
-        <div className="modal-overlay" style={{ top: '70px', zIndex: 9999 }}>
+      {isJobModalOpen && createPortal(
+        <div className="modal-overlay" style={{ zIndex: 9999 }}>
           <div 
             className="modal-content" 
             style={{ 
@@ -1754,7 +1756,7 @@ export const EmployerPortal: React.FC = () => {
               {jobModalMode === 'create' && (
                 <div style={{ width: '260px', borderRight: '1px solid var(--color-border)', paddingRight: '20px', overflowY: 'auto', display: 'flex', flexDirection: 'column', gap: '12px' }}>
                   <h4 style={{ fontSize: '13px', fontWeight: 700, margin: 0, textTransform: 'uppercase', color: 'var(--color-primary)' }}>
-                    📋 Past Templates
+                    📋 PAST TEMPLATES
                   </h4>
                   <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: 0 }}>
                     Select a previous listing to prefill all fields and screening questions.
@@ -2092,7 +2094,8 @@ export const EmployerPortal: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
     </div>
   );
