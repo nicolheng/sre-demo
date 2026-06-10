@@ -10,7 +10,8 @@ import type {
   BlueprintCommit,
   SystemLog,
   StudentReview,
-  EmployerFeedback
+  EmployerFeedback,
+  EmployerProfile
 } from '../types';
 
 export type UserRole = 'Student' | 'Employer' | 'Lecturer' | 'CareerCentre';
@@ -45,6 +46,11 @@ interface PortalContextType {
   employerFeedbacks: EmployerFeedback[];
   liaisonFlags: Record<string, { language: string; lecturerId: string; bannerActive: boolean }>;
   employerVerifications: Record<string, boolean>; // companyId -> verified
+  employerProfiles: EmployerProfile[];
+  programRequirements: string;
+  setProgramRequirements: (reqs: string) => void;
+  collaborationLogs: string[];
+  setCollaborationLogs: React.Dispatch<React.SetStateAction<string[]>>;
 
   // Authentication Actions
   login: (email: string, role: UserRole) => boolean;
@@ -53,6 +59,7 @@ interface PortalContextType {
   
   // App Actions
   addJob: (job: Omit<Job, 'id' | 'logo' | 'isApproved' | 'createdAt'>) => void;
+  updateJob: (jobId: string, updatedFields: Partial<Omit<Job, 'id' | 'logo' | 'createdAt'>>) => void;
   approveJob: (jobId: string) => void;
   rejectJob: (jobId: string, reason: string) => void;
   applyForJob: (
@@ -61,7 +68,12 @@ interface PortalContextType {
     sop: string,
     screeningAnswers: Record<string, string>,
     videoUrl?: string,
+<<<<<<< HEAD
     cvName?: string
+=======
+    fypThesisTitle?: string,
+    fypAdvisorName?: string
+>>>>>>> 2bb652dcafd307e0edcd8b44607a3634dfeaefdf
   ) => void;
   withdrawApplication: (appId: string) => void;
   editApplication: (appId: string, cvName: string, sop: string, email: string, phone: string) => void;
@@ -76,10 +88,25 @@ interface PortalContextType {
   triggerLiaisonFlag: (appId: string, language: string, lecturerId: string) => void;
   resolveLiaisonFlag: (appId: string) => void;
   addFacultyStatement: (studentId: string, author: string, statement: string) => void;
-  addBlueprintCommit: (author: string, action: string) => void;
+  addBlueprintCommit: (author: string, action: string, studentId?: string) => void;
   uploadOfferLetter: (appId: string, fileName: string) => void;
   verifyPlacement: (appId: string) => void;
-  verifyEmployer: (companyId: string, verified: boolean) => void;
+  verifyEmployer: (companyId: string, verified: boolean, rejectionReason?: string) => void;
+  
+  publicJobId: string | null;
+  setPublicJobId: (id: string | null) => void;
+  applyExternal: (
+    jobId: string,
+    candidateName: string,
+    candidateEmail: string,
+    candidatePhone: string,
+    cvName: string,
+    sop: string,
+    screeningAnswers: Record<string, string>,
+    videoUrl?: string,
+    fypThesisTitle?: string,
+    fypAdvisorName?: string
+  ) => void;
 }
 
 const PortalContext = createContext<PortalContextType | undefined>(undefined);
@@ -173,7 +200,13 @@ const mockJobs: Job[] = [
     videoDurationLimit: 90,
     isApproved: true,
     createdAt: '2026-06-02',
-    logo: 'IJM'
+    logo: 'IJM',
+    isFypCollaboration: true,
+    fypMilestones: [
+      'Spec & Literature Review: Align research scope with IJM APIs',
+      'Prototype Evaluation: Core platform design and component vetting',
+      'Thesis Defense & Production: Handover of integrated components'
+    ]
   },
   {
     id: 'j3',
@@ -231,7 +264,7 @@ const mockApplications: Application[] = [
     jobId: 'j1',
     studentId: 's1', // John Lim applied to Datum Technology
     submissionDate: '2026-06-02',
-    status: 'Screening',
+    status: 'Approved',
     cvName: 'JohnLim_CV_20234567.pdf',
     statementOfPurpose: 'I wish to expand my mobile developer programming capabilities, focusing on React Native and cloud systems.',
     contactEmail: 'john.lim@university.edu.my',
@@ -262,13 +295,41 @@ const mockApplications: Application[] = [
     jobId: 'j3',
     studentId: 's2', // Maya applied to Arvato UI/UX
     submissionDate: '2026-06-04',
-    status: 'Applied',
+    status: 'Approved',
     cvName: 'Maya_UX_Resume.pdf',
     statementOfPurpose: 'Designing beautiful interfaces is my passion.',
     contactEmail: 'maya@university.edu.my',
     contactPhone: '+60 17-654 3210',
     screeningAnswers: {
       '0': 'My overall design principle is simplicity and ease of use.'
+    }
+  },
+  {
+    id: 'a4',
+    jobId: 'j3',
+    studentId: 's4', // Sophia applied to Arvato UI/UX
+    submissionDate: '2026-06-05',
+    status: 'Screening',
+    cvName: 'Sophia_Data_Science_Resume.pdf',
+    statementOfPurpose: 'I would love to apply machine learning algorithms to user behavioral analysis and front-end interface design layout optimization.',
+    contactEmail: 'sophia@university.edu.my',
+    contactPhone: '+60 13-987 6543',
+    screeningAnswers: {
+      '0': 'Data-driven insights should guide visual design configurations to minimize user friction.'
+    }
+  },
+  {
+    id: 'a5',
+    jobId: 'j3',
+    studentId: 's1', // John Lim applied to Arvato UI/UX
+    submissionDate: '2026-06-05',
+    status: 'Shortlisted',
+    cvName: 'JohnLim_CV_20234567.pdf',
+    statementOfPurpose: 'Developing robust components matching state-of-the-art wireframes is my objective.',
+    contactEmail: 'john.lim@university.edu.my',
+    contactPhone: '+60 12-345 6789',
+    screeningAnswers: {
+      '0': 'My design philosophy centers on clean structure, type-safe layouts, and fluid transitions.'
     }
   }
 ];
@@ -291,17 +352,22 @@ const mockLogbookEntries: LogbookEntry[] = [
 const mockChecklists: Record<string, PlacementChecklist> = {
   'a1': { applicationId: 'a1', insurance: 'Pass', visa: 'Pass', payModel: 'Pass', csRelevance: 'Pass' },
   'a2': { applicationId: 'a2', insurance: 'Pending', visa: 'Pass', payModel: 'Pending', csRelevance: 'Pass' },
-  'a3': { applicationId: 'a3', insurance: 'Pending', visa: 'Pending', payModel: 'Pending', csRelevance: 'Pending' }
+  'a3': { applicationId: 'a3', insurance: 'Pass', visa: 'Pass', payModel: 'Pass', csRelevance: 'Pass' },
+  'a4': { applicationId: 'a4', insurance: 'Pending', visa: 'Pending', payModel: 'Pending', csRelevance: 'Pending' },
+  'a5': { applicationId: 'a5', insurance: 'Pending', visa: 'Pending', payModel: 'Pending', csRelevance: 'Pending' }
 };
 
 const mockFacultyStatements: FacultyStatement[] = [
   { id: 'f1', studentId: 's1', author: 'Dr. Lim Wei Ming', statement: 'Initial review of John\'s task assignments confirms deep software engineering alignment. No adjustments required.', timestamp: '2026-06-03 10:00 AM' },
-  { id: 'f2', studentId: 's1', author: 'Puan Aisyah', statement: 'We agree with the academic assessment. John is adapting very quickly to our development workflows.', timestamp: '2026-06-04 02:30 PM' }
+  { id: 'f2', studentId: 's1', author: 'Puan Aisyah', statement: 'We agree with the academic assessment. John is adapting very quickly to our development workflows.', timestamp: '2026-06-04 02:30 PM' },
+  { id: 'f3', studentId: 's2', author: 'Dr. Lim Wei Ming', statement: 'Maya\'s onboarding layout looks highly creative. Aligning project deliverables to Course Outcomes.', timestamp: '2026-06-05 09:00 AM' }
 ];
 
 const mockBlueprintCommits: BlueprintCommit[] = [
-  { id: 'c1', author: 'Dr. Lim Wei Ming', action: 'Created collaborative workspace & uploaded WIA3001 Syllabus blueprint.', timestamp: '2026-06-01 09:00 AM' },
-  { id: 'c2', author: 'Puan Aisyah', action: 'Modified project alignment details - added React/Typescript scope.', timestamp: '2026-06-02 11:15 AM' }
+  { id: 'c1', studentId: 's1', author: 'Dr. Lim Wei Ming', action: 'Created collaborative workspace & uploaded WIA3001 Syllabus blueprint.', timestamp: '2026-06-01 09:00 AM' },
+  { id: 'c2', studentId: 's1', author: 'Puan Aisyah', action: 'Modified project alignment details - added React/Typescript scope.', timestamp: '2026-06-02 11:15 AM' },
+  { id: 'c3', studentId: 's2', author: 'Dr. Lim Wei Ming', action: 'Created collaborative workspace for UI/UX placement.', timestamp: '2026-06-03 10:30 AM' },
+  { id: 'c4', studentId: 's2', author: 'Sarah Tan', action: 'Uploaded internship project timeline blueprint.', timestamp: '2026-06-04 11:00 AM' }
 ];
 
 const mockSystemLogs: SystemLog[] = [
@@ -343,6 +409,74 @@ const mockEmployerVerifications: Record<string, boolean> = {
   'c_ijm': true,
   'c_spam': false
 };
+
+const mockEmployerProfiles: EmployerProfile[] = [
+  {
+    id: 'c_arvato',
+    name: 'Arvato Systems',
+    verified: true,
+    industry: 'Information Technology & Services',
+    location: 'Kuala Lumpur, Malaysia',
+    contactPerson: 'Sarah Tan',
+    email: 'sarah.tan@arvato.com',
+    phone: '+60 3-2284 1234',
+    description: 'Arvato Systems is a global IT specialist and multi-cloud service provider. We support companies in their digital transformation with tailor-made IT solutions.',
+    website: 'https://arvatosystems.com.my',
+    documentName: 'SSM_Business_Registration_Arvato.pdf'
+  },
+  {
+    id: 'c_techcorp',
+    name: 'TechCorp Solutions',
+    verified: true,
+    industry: 'Software Engineering',
+    location: 'Penang, Malaysia',
+    contactPerson: 'Marcus Lim',
+    email: 'marcus.l@techcorp.com',
+    phone: '+60 4-646 5678',
+    description: 'TechCorp Solutions specializes in cloud operations, enterprise system development, and machine learning infrastructure support.',
+    website: 'https://techcorpsolutions.com',
+    documentName: 'SSM_TechCorp_Cert.pdf'
+  },
+  {
+    id: 'c_datum',
+    name: 'Datum Technology',
+    verified: true,
+    industry: 'Mobile App Development',
+    location: 'Selangor, Malaysia',
+    contactPerson: 'Alvin Wong',
+    email: 'alvin.w@datumtech.co',
+    phone: '+60 3-7728 9988',
+    description: 'Datum Technology is a premium software agency developing high-end mobile apps and interactive web portals for local and international brands.',
+    website: 'https://datumtech.co',
+    documentName: 'SSM_Datum_Tech_Form_9.pdf'
+  },
+  {
+    id: 'c_ijm',
+    name: 'IJM Corporation',
+    verified: true,
+    industry: 'Construction & Real Estate',
+    location: 'Kuala Lumpur, Malaysia',
+    contactPerson: 'Michael Chang',
+    email: 'michael.c@ijm.com',
+    phone: '+60 3-7984 8888',
+    description: 'IJM Corporation Berhad is one of Malaysia\'s leading conglomerates, with business operations spanning construction, property development, infrastructure concessions, and industrial products.',
+    website: 'https://ijm.com',
+    documentName: 'SSM_IJM_Corp_Reg.pdf'
+  },
+  {
+    id: 'c_spam',
+    name: 'Spam Inc',
+    verified: false,
+    industry: 'Marketing & Advertising',
+    location: 'Johor Bahru, Malaysia',
+    contactPerson: 'John Cheat',
+    email: 'hr@spammarketing.info',
+    phone: '+60 7-331 4455',
+    description: 'Spam Inc is a generic marketing agency specializing in high-volume social media posting and commission-only lead generation campaigns.',
+    website: 'http://spammarketing.info',
+    documentName: 'Fake_SSM_License.png'
+  }
+];
 
 // Seed Users for Authentication
 const SEED_USERS: Record<string, LoggedInUser> = {
@@ -404,7 +538,18 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   const [employerFeedbacks, setEmployerFeedbacks] = useState<EmployerFeedback[]>(mockEmployerFeedbacks);
   
   const [employerVerifications, setEmployerVerifications] = useState<Record<string, boolean>>(mockEmployerVerifications);
+  const [employerProfiles, setEmployerProfiles] = useState<EmployerProfile[]>(mockEmployerProfiles);
   const [liaisonFlags, setLiaisonFlags] = useState<Record<string, { language: string; lecturerId: string; bannerActive: boolean }>>({});
+  const [publicJobId, setPublicJobId] = useState<string | null>(null);
+
+  const [programRequirements, setProgramRequirements] = useState<string>(
+    "Minimum CGPA required: 3.2\nCore Technologies: React, TypeScript, HTML, CSS, REST APIs\nWork Schedule: Mon-Fri, 9:00 AM - 6:00 PM\nAcademic Specialization: Software Engineering & UI/UX"
+  );
+  const [collaborationLogs, setCollaborationLogs] = useState<string[]>([
+    "[2026-06-08 10:15 AM] Sarah Tan updated CGPA requirements from 3.0 to 3.2.",
+    "[2026-06-07 04:30 PM] Career Centre Coordinator Puan Siti left feedback: 'Please ensure programming requirements match WIA3001 course blueprints.'",
+    "[2026-06-07 09:00 AM] Sarah Tan initialized internship program requirements for WIA3001."
+  ]);
 
   const setCurrentRole = (role: UserRole) => {
     setCurrentRoleState(role);
@@ -496,7 +641,17 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     setJobs(prev => [...prev, job]);
     
     // Log action
-    logAction('Company HR', `Created Job Posting "${job.title}" (Pending Approval).`);
+    if (job.isDraft) {
+      logAction('Company HR', `Saved Draft Job Posting "${job.title}".`);
+    } else {
+      logAction('Company HR', `Created Job Posting "${job.title}" (Pending Approval).`);
+    }
+  };
+
+  // Action: Update Job
+  const updateJob = (jobId: string, updatedFields: Partial<Omit<Job, 'id' | 'logo' | 'createdAt'>>) => {
+    setJobs(prev => prev.map(j => j.id === jobId ? { ...j, ...updatedFields } : j));
+    logAction('Company HR', `Updated Job Posting "${jobId}".`);
   };
 
   // Action: Approve Job
@@ -520,7 +675,12 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
     sop: string,
     screeningAnswers: Record<string, string>,
     videoUrl?: string,
+<<<<<<< HEAD
     cvName?: string
+=======
+    fypThesisTitle?: string,
+    fypAdvisorName?: string
+>>>>>>> 2bb652dcafd307e0edcd8b44607a3634dfeaefdf
   ) => {
     const student = students.find(s => s.id === studentId);
     const job = jobs.find(j => j.id === jobId);
@@ -535,7 +695,9 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       contactEmail: student?.email || '',
       contactPhone: student?.phone || '',
       screeningAnswers,
-      videoResponseUrl: videoUrl
+      videoResponseUrl: videoUrl,
+      fypThesisTitle,
+      fypAdvisorName
     };
 
     setApplications(prev => [...prev, newApp]);
@@ -719,9 +881,10 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   // Action: Add Blueprint Commit
-  const addBlueprintCommit = (author: string, action: string) => {
+  const addBlueprintCommit = (author: string, action: string, studentId?: string) => {
     const commit: BlueprintCommit = {
       id: `c${blueprintCommits.length + 1}`,
+      studentId,
       author,
       action,
       timestamp: new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
@@ -757,12 +920,88 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
   };
 
   // Action: Verify Employer
-  const verifyEmployer = (companyId: string, verified: boolean) => {
+  const verifyEmployer = (companyId: string, verified: boolean, rejectionReason?: string) => {
     setEmployerVerifications(prev => ({
       ...prev,
       [companyId]: verified
     }));
-    logAction('Career Centre Staff', `Updated Employer "${companyId}" credibility status to ${verified ? 'Verified' : 'Unverified'}.`);
+    setEmployerProfiles(prev => prev.map(p => p.id === companyId ? { 
+      ...p, 
+      verified, 
+      rejectionReason: verified ? undefined : (rejectionReason || p.rejectionReason)
+    } : p));
+    if (verified) {
+      logAction('Career Centre Staff', `Verified Employer "${companyId}" profile status to Credible.`);
+    } else if (rejectionReason) {
+      logAction('Career Centre Staff', `Rejected Employer "${companyId}" verification request: "${rejectionReason}".`);
+    } else {
+      logAction('Career Centre Staff', `Updated Employer "${companyId}" credibility status to Unverified.`);
+    }
+  };
+
+  // Action: Apply External (Direct applicant landing page)
+  const applyExternal = (
+    jobId: string,
+    candidateName: string,
+    candidateEmail: string,
+    candidatePhone: string,
+    cvName: string,
+    sop: string,
+    screeningAnswers: Record<string, string>,
+    videoUrl?: string,
+    fypThesisTitle?: string,
+    fypAdvisorName?: string
+  ) => {
+    let studentObj = students.find(s => s.email.toLowerCase() === candidateEmail.toLowerCase().trim());
+    if (!studentObj) {
+      const newStudent: Student = {
+        id: `s_ext_${Date.now()}`,
+        name: candidateName,
+        email: candidateEmail.toLowerCase().trim(),
+        phone: candidatePhone,
+        cgpa: 3.5,
+        skills: ['HTML', 'CSS', 'JavaScript'],
+        achievements: ['External Portal Applicant'],
+        projects: [],
+        matricNumber: `EXT-${Math.floor(100000 + Math.random() * 900000)}`,
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=120'
+      };
+      setStudents(prev => [...prev, newStudent]);
+      studentObj = newStudent;
+    }
+    const student: Student = studentObj;
+
+    const newApp: Application = {
+      id: `a${applications.length + 1}`,
+      jobId,
+      studentId: student.id,
+      submissionDate: new Date().toISOString().split('T')[0],
+      status: 'Applied',
+      cvName: cvName || `${candidateName}_Resume.pdf`,
+      statementOfPurpose: sop,
+      contactEmail: candidateEmail,
+      contactPhone: candidatePhone,
+      screeningAnswers,
+      videoResponseUrl: videoUrl,
+      fypThesisTitle,
+      fypAdvisorName
+    };
+
+    setApplications(prev => [...prev, newApp]);
+
+    setChecklists(prev => ({
+      ...prev,
+      [newApp.id]: {
+        applicationId: newApp.id,
+        insurance: 'Pending',
+        visa: 'Pending',
+        payModel: 'Pending',
+        csRelevance: 'Pending'
+      }
+    }));
+
+    const job = jobs.find(j => j.id === jobId);
+    logAction('External System', `Candidate "${candidateName}" submitted native direct application for Job "${job?.title || jobId}".`);
   };
 
   // Helper: Log Action
@@ -796,13 +1035,19 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       reviews,
       employerFeedbacks,
       employerVerifications,
+      employerProfiles,
       liaisonFlags,
+      programRequirements,
+      setProgramRequirements,
+      collaborationLogs,
+      setCollaborationLogs,
       
       login,
       logout,
       register,
 
       addJob,
+      updateJob,
       approveJob,
       rejectJob,
       applyForJob,
@@ -822,7 +1067,11 @@ export const PortalProvider: React.FC<{ children: React.ReactNode }> = ({ childr
       addBlueprintCommit,
       uploadOfferLetter,
       verifyPlacement,
-      verifyEmployer
+      verifyEmployer,
+      
+      publicJobId,
+      setPublicJobId,
+      applyExternal
     }}>
       {children}
     </PortalContext.Provider>

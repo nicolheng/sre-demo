@@ -12,7 +12,13 @@ export const LecturerPortal: React.FC = () => {
     jobs,
     logbookEntries,
     addFacultyStatement,
-    loggedInUser
+    loggedInUser,
+    facultyStatements,
+    blueprintCommits,
+    addBlueprintCommit,
+    programRequirements,
+    setProgramRequirements,
+    setCollaborationLogs
   } = usePortal();
 
   // Active lecturer profile
@@ -27,6 +33,17 @@ export const LecturerPortal: React.FC = () => {
   // Faculty statement form
   const [statementText, setStatementText] = useState('');
   const [statementToast, setStatementToast] = useState(false);
+
+  // Collaboration Workspace States
+  const [collabStudentId, setCollabStudentId] = useState<string>('');
+  const [isBlueprintModalOpen, setIsBlueprintModalOpen] = useState(false);
+  const [blueprintFileName, setBlueprintFileName] = useState('WIA3001_Syllabus_v2.pdf');
+  const [blueprintDesc, setBlueprintDesc] = useState('');
+  const [editReqsText, setEditReqsText] = useState('');
+  const [isEditingReqs, setIsEditingReqs] = useState(false);
+  const [reqsToast, setReqsToast] = useState(false);
+  const [collabStatementText, setCollabStatementText] = useState('');
+  const [collabStatementToast, setCollabStatementToast] = useState(false);
 
   // Site visit planning simulation
   const [visitDate, setVisitDate] = useState('2026-06-22');
@@ -1299,6 +1316,300 @@ export const LecturerPortal: React.FC = () => {
           </div>
         </div>
       )}
+
+      {/* REQUIREMENT COLLABORATION WORKSPACE (Screen 2.6 / PB-13 / PB-14 / PB-32.1) */}
+      {activeSubpage === 'collaboration' && (() => {
+        // Find supervised placements (status === 'Approved' and student in assignedStudentIds)
+        const supervisedPlacements = applications.filter(a => a.status === 'Approved' && assignedStudentIds.includes(a.studentId));
+        
+        if (supervisedPlacements.length === 0) {
+          return (
+            <div className="dashboard-card slide-up" style={{ textAlign: 'center', padding: '40px 20px', margin: 0 }}>
+              <div style={{ fontSize: '48px', marginBottom: '16px' }}>🔒</div>
+              <h3 style={{ fontSize: '18px', fontWeight: 700, color: 'var(--color-text-main)', marginBottom: '8px' }}>Access Restricted</h3>
+              <p style={{ fontSize: '13px', color: 'var(--color-text-muted)', maxWidth: '400px', margin: '0 auto' }}>
+                The collaborative workspace is restricted via Role-Based Access Control (RBAC). It is only visible to faculty advisors and corporate stakeholders matching an active, verified student placement.
+              </p>
+            </div>
+          );
+        }
+
+        const activeStudentId = collabStudentId || supervisedPlacements[0].studentId;
+        const student = students.find(s => s.id === activeStudentId);
+        const activePlacement = supervisedPlacements.find(p => p.studentId === activeStudentId) || supervisedPlacements[0];
+        const job = jobs.find(j => j.id === activePlacement.jobId);
+        
+        // Filter statements & timeline commits for the active student placement
+        const studentStatements = facultyStatements.filter(s => s.studentId === activeStudentId);
+        const studentCommits = blueprintCommits.filter(c => c.studentId === activeStudentId);
+
+        return (
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }} className="slide-up">
+            {/* Top Selector Card */}
+            <div className="dashboard-card" style={{ margin: 0, padding: '16px 20px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '16px' }}>
+              <div>
+                <h3 style={{ fontSize: '16px', fontWeight: 700, margin: 0 }}>🤝 Shared Workspace: University-Corporate Bridge</h3>
+                <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', margin: '4px 0 0 0' }}>
+                  Select an active placement to collaborate on requirements, log adjustment statements, and review shared blueprints.
+                </p>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
+                <span style={{ fontSize: '12px', fontWeight: 600 }}>Supervised Placement:</span>
+                <select 
+                  className="form-input" 
+                  style={{ width: '220px', height: '36px', fontSize: '13px', padding: '6px' }}
+                  value={activeStudentId}
+                  onChange={e => {
+                    setCollabStudentId(e.target.value);
+                    setIsEditingReqs(false);
+                  }}
+                >
+                  {supervisedPlacements.map(p => {
+                    const s = students.find(st => st.id === p.studentId);
+                    const j = jobs.find(jb => jb.id === p.jobId);
+                    return (
+                      <option key={p.studentId} value={p.studentId}>
+                        {s?.name} — {j?.companyName}
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+
+            {/* Workspace Main Grid */}
+            <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px' }}>
+              
+              {/* Left Column: Requirements & Statements */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                {/* Requirements Card */}
+                <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h4 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>🏢 Internship Requirements & Alignments (PB-13)</h4>
+                    {!isEditingReqs ? (
+                      <button 
+                        className="btn btn-secondary" 
+                        style={{ padding: '4px 10px', fontSize: '11px' }}
+                        onClick={() => {
+                          setEditReqsText(programRequirements);
+                          setIsEditingReqs(true);
+                        }}
+                      >
+                        ✏️ Edit Requirements
+                      </button>
+                    ) : (
+                      <div style={{ display: 'flex', gap: '6px' }}>
+                        <button 
+                          className="btn btn-secondary" 
+                          style={{ padding: '4px 10px', fontSize: '11px' }}
+                          onClick={() => setIsEditingReqs(false)}
+                        >
+                          Cancel
+                        </button>
+                        <button 
+                          className="btn btn-primary" 
+                          style={{ padding: '4px 10px', fontSize: '11px' }}
+                          onClick={() => {
+                            setProgramRequirements(editReqsText);
+                            setIsEditingReqs(false);
+                            const nowStr = new Date().toLocaleDateString() + ' ' + new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                            setCollaborationLogs(prev => [
+                              `[${nowStr}] Dr. Lim Wei Ming edited the internship requirements for ${student?.name}'s placement.`,
+                              ...prev
+                            ]);
+                            addBlueprintCommit(lecturerName, `Updated internship program requirements alignment.`, activeStudentId);
+                            setReqsToast(true);
+                            setTimeout(() => setReqsToast(false), 3000);
+                          }}
+                        >
+                          Save Changes
+                        </button>
+                      </div>
+                    )}
+                  </div>
+
+                  {!isEditingReqs ? (
+                    <div style={{ backgroundColor: '#f8fafc', padding: '16px', borderRadius: '8px', border: '1px dashed var(--color-border)' }}>
+                      <pre style={{ margin: 0, fontFamily: 'inherit', fontSize: '13px', whiteSpace: 'pre-line', lineHeight: '1.6' }}>
+                        {programRequirements}
+                      </pre>
+                    </div>
+                  ) : (
+                    <textarea
+                      className="form-input"
+                      rows={6}
+                      style={{ fontFamily: 'monospace', fontSize: '13px', lineHeight: '1.5' }}
+                      value={editReqsText}
+                      onChange={e => setEditReqsText(e.target.value)}
+                    />
+                  )}
+                  {reqsToast && <p style={{ color: 'var(--status-offered)', fontSize: '12px', marginTop: '8px', fontWeight: 600 }}>✓ Requirements updated and timeline synchronized.</p>}
+                </div>
+
+                {/* Faculty Interview Statements Card */}
+                <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+                  <h4 style={{ fontSize: '15px', fontWeight: 700, marginBottom: '8px' }}>💬 Faculty Interview Statements & Adjustments</h4>
+                  <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '16px' }}>
+                    Record specific adjustments, academic reviews, or interview comments to bridge corporate workflows (PB-32.1).
+                  </p>
+                  
+                  {/* Append module */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginBottom: '20px' }}>
+                    <textarea 
+                      className="form-input" 
+                      rows={3} 
+                      placeholder="Add qualitative review notes or recommended syllabus alignments..."
+                      value={collabStatementText}
+                      onChange={e => setCollabStatementText(e.target.value)}
+                      style={{ fontSize: '12.5px' }}
+                    />
+                    <button 
+                      className="btn btn-primary" 
+                      style={{ alignSelf: 'flex-end', padding: '6px 16px', fontSize: '12px' }}
+                      onClick={() => {
+                        if (!collabStatementText.trim()) return;
+                        addFacultyStatement(activeStudentId, lecturerName, collabStatementText);
+                        addBlueprintCommit(lecturerName, `Appended adjustment statement: "${collabStatementText.substring(0, 45)}..."`, activeStudentId);
+                        setCollabStatementText('');
+                        setCollabStatementToast(true);
+                        setTimeout(() => setCollabStatementToast(false), 3000);
+                      }}
+                    >
+                      Append Statement
+                    </button>
+                    {collabStatementToast && <p style={{ color: 'var(--status-offered)', fontSize: '12px', fontWeight: 600 }}>✓ Faculty Interview Statement logged.</p>}
+                  </div>
+
+                  {/* List of statements */}
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
+                    {studentStatements.map(stmt => (
+                      <div key={stmt.id} style={{ border: '1px solid var(--color-border)', borderRadius: '8px', padding: '12px 16px', backgroundColor: 'var(--color-bg-light, #ffffff)' }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '6px', fontSize: '12px' }}>
+                          <strong style={{ color: 'var(--color-primary)' }}>{stmt.author}</strong>
+                          <span style={{ color: 'var(--color-text-muted)' }}>{stmt.timestamp}</span>
+                        </div>
+                        <p style={{ fontSize: '13px', margin: 0, lineHeight: '1.4' }}>{stmt.statement}</p>
+                      </div>
+                    ))}
+                    {studentStatements.length === 0 && (
+                      <p style={{ fontStyle: 'italic', color: 'var(--color-text-muted)', fontSize: '12.5px', margin: 0 }}>No statements recorded yet.</p>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+              {/* Right Column: Version Control Timeline & Placement Meta */}
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '24px' }}>
+                
+                {/* Placement Details Card */}
+                <div className="dashboard-card" style={{ margin: 0, padding: '20px' }}>
+                  <h4 style={{ fontSize: '14.5px', fontWeight: 700, marginBottom: '12px' }}>📋 Placement Overview</h4>
+                  <div style={{ display: 'flex', gap: '14px', alignItems: 'center', marginBottom: '16px' }}>
+                    <img src={student?.avatar} alt={student?.name} style={{ width: '48px', height: '48px', borderRadius: '50%', objectFit: 'cover' }} />
+                    <div>
+                      <h5 style={{ fontSize: '14px', fontWeight: 700, margin: 0 }}>{student?.name}</h5>
+                      <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>Matric Card: {student?.matricNumber} | CGPA: {student?.cgpa}</p>
+                    </div>
+                  </div>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', fontSize: '12px', borderTop: '1px solid var(--color-border)', paddingTop: '12px' }}>
+                    <p>🏢 <strong>Company:</strong> {job?.companyName}</p>
+                    <p>🎯 <strong>Position:</strong> {job?.title}</p>
+                    <p>👤 <strong>Supervisor:</strong> {job?.companyName === 'Arvato Systems' ? 'Sarah Tan (HR)' : 'Alvin Wong (Lead Dev)'}</p>
+                    <p>⏱️ <strong>Duration:</strong> {job?.duration}</p>
+                  </div>
+                </div>
+
+                {/* Version Control Timeline */}
+                <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                    <h4 style={{ fontSize: '14.5px', fontWeight: 700, margin: 0 }}>⚙️ Version Control Timeline</h4>
+                    <button 
+                      className="btn btn-secondary" 
+                      style={{ padding: '4px 10px', fontSize: '11px' }}
+                      onClick={() => setIsBlueprintModalOpen(true)}
+                    >
+                      📤 Upload Blueprint
+                    </button>
+                  </div>
+                  
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '16px', borderLeft: '2px solid var(--color-border)', paddingLeft: '16px', marginLeft: '6px' }}>
+                    {studentCommits.map(commit => (
+                      <div key={commit.id} style={{ position: 'relative' }}>
+                        <span style={{ position: 'absolute', left: '-21px', top: '4px', backgroundColor: 'var(--color-primary)', width: '8px', height: '8px', borderRadius: '50%' }}></span>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--color-text-muted)', marginBottom: '3px' }}>
+                          <strong>{commit.author}</strong>
+                          <span>{commit.timestamp}</span>
+                        </div>
+                        <p style={{ fontSize: '12px', margin: 0, lineHeight: '1.4' }}>{commit.action}</p>
+                      </div>
+                    ))}
+                    {studentCommits.length === 0 && (
+                      <p style={{ fontStyle: 'italic', color: 'var(--color-text-muted)', fontSize: '12px', marginLeft: '-16px' }}>No timeline logs yet.</p>
+                    )}
+                  </div>
+                </div>
+
+              </div>
+
+            </div>
+
+            {/* Upload Blueprint Modal */}
+            {isBlueprintModalOpen && (
+              <div className="modal-overlay">
+                <div className="modal-content" style={{ maxWidth: '450px' }}>
+                  <h3 style={{ fontSize: '16px', fontWeight: 700, marginBottom: '16px' }}>📤 Upload Shared Program Blueprint</h3>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
+                    <div className="form-group">
+                      <span className="form-label">Blueprint File Name:</span>
+                      <input 
+                        type="text" 
+                        className="form-input" 
+                        value={blueprintFileName} 
+                        onChange={e => setBlueprintFileName(e.target.value)} 
+                        placeholder="e.g. course_syllabus.pdf"
+                        style={{ height: '36px', fontSize: '13px' }}
+                      />
+                    </div>
+                    <div className="form-group">
+                      <span className="form-label">Blueprint / Scope Description:</span>
+                      <textarea 
+                        className="form-input" 
+                        rows={3} 
+                        value={blueprintDesc} 
+                        onChange={e => setBlueprintDesc(e.target.value)} 
+                        placeholder="Provide details about the uploaded document scope..."
+                        style={{ fontSize: '12.5px' }}
+                      />
+                    </div>
+                  </div>
+                  <div className="modal-buttons" style={{ marginTop: '20px' }}>
+                    <button className="btn btn-secondary" onClick={() => {
+                      setIsBlueprintModalOpen(false);
+                      setBlueprintDesc('');
+                    }}>Cancel</button>
+                    <button 
+                      className="btn btn-primary" 
+                      onClick={() => {
+                        if (!blueprintFileName.trim()) return;
+                        const actionStr = `Uploaded blueprint "${blueprintFileName}"${blueprintDesc ? ` — ${blueprintDesc}` : ''}`;
+                        addBlueprintCommit(lecturerName, actionStr, activeStudentId);
+                        setIsBlueprintModalOpen(false);
+                        setBlueprintDesc('');
+                        alert(`✓ Blueprint uploaded successfully! logged to version control.`);
+                      }}
+                    >
+                      Upload & Log Commit
+                    </button>
+                  </div>
+                </div>
+              </div>
+            )}
+
+          </div>
+        );
+      })()}
 
       {/* DOCUMENT VIEWER MODAL */}
       {viewerDoc && (

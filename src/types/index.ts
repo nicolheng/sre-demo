@@ -27,6 +27,9 @@ export interface Job {
   rejectionReason?: string;
   createdAt: string;
   logo: string;
+  isFypCollaboration?: boolean;
+  fypMilestones?: string[];
+  isDraft?: boolean;
 }
 
 export interface Application {
@@ -45,6 +48,8 @@ export interface Application {
   offerLetterName?: string;
   offerLetterUrl?: string;
   feedbackSubmitted?: boolean;
+  fypThesisTitle?: string;
+  fypAdvisorName?: string;
 }
 
 export interface InterviewSlot {
@@ -90,6 +95,7 @@ export interface FacultyStatement {
 
 export interface BlueprintCommit {
   id: string;
+  studentId?: string; // Optional student ID to filter by placement
   author: string;
   action: string; // e.g. "Uploaded blueprint.pdf"
   timestamp: string;
@@ -123,3 +129,20 @@ export interface EmployerFeedback {
   feedbackText: string;
   timestamp: string;
 }
+
+export interface EmployerProfile {
+  id: string;
+  name: string;
+  verified: boolean;
+  industry: string;
+  location: string;
+  contactPerson: string;
+  email: string;
+  phone: string;
+  description: string;
+  website: string;
+  documentName?: string; // simulated business registration certificate
+  documentUrl?: string;
+  rejectionReason?: string; // rejection feedback notes
+}
+

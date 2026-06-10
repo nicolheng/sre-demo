@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { PortalProvider, usePortal } from './context/PortalState';
 import StudentPortal from './roles/StudentPortal';
 import EmployerPortal from './roles/EmployerPortal';
@@ -6,19 +6,35 @@ import LecturerPortal from './roles/LecturerPortal';
 import CareerCentre from './roles/CareerCentre';
 import MobileFrame from './components/MobileFrame';
 import AuthPortal from './components/AuthPortal';
+import PublicLandingPage from './components/PublicLandingPage';
 
 const PortalShell: React.FC = () => {
-  const { 
-    isAuthenticated, 
-    loggedInUser, 
-    currentRole, 
-    activeSubpage, 
+  const {
+    isAuthenticated,
+    loggedInUser,
+    currentRole,
+    activeSubpage,
     setActiveSubpage,
-    logout 
+    logout,
+    publicJobId,
+    setPublicJobId
   } = usePortal();
-  
+
   // Toggle for Student Mobile View Simulator
   const [mobilePreview, setMobilePreview] = useState(false);
+
+  // Detect shared tracking link parameters on startup
+  useEffect(() => {
+    const params = new URLSearchParams(window.location.search);
+    const jobIdParam = params.get('jobId');
+    if (jobIdParam) {
+      setPublicJobId(jobIdParam);
+    }
+  }, [setPublicJobId]);
+
+  if (publicJobId) {
+    return <PublicLandingPage />;
+  }
 
   if (!isAuthenticated || !loggedInUser) {
     return <AuthPortal />;
@@ -53,10 +69,9 @@ const PortalShell: React.FC = () => {
             { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
             { id: 'jobs', icon: '📝', label: 'Job Postings' },
             { id: 'candidates', icon: '👥', label: 'Candidates' },
-            { id: 'shortlisted', icon: '⭐', label: 'Shortlisted' },
             { id: 'interviews', icon: '📅', label: 'Interviews' },
-            { id: 'ai-recs', icon: '🤖', label: 'AI Recommendations' },
             { id: 'messages', icon: '💬', label: 'Messages' },
+            { id: 'collaboration', icon: '🤝', label: 'Oversight & Collaboration' },
             { id: 'reports', icon: '📊', label: 'Reports & Analytics' },
             { id: 'settings', icon: '⚙️', label: 'Settings' }
           ]
@@ -71,6 +86,7 @@ const PortalShell: React.FC = () => {
             { id: 'partners', icon: '🏢', label: 'Industry Partners' },
             { id: 'reports', icon: '📋', label: 'Internship Reports' },
             { id: 'planning', icon: '📅', label: 'Project Planning' },
+            { id: 'monitoring', icon: '📊', label: 'Progress Monitoring' },
             { id: 'messages', icon: '💬', label: 'Messages' },
             { id: 'profile', icon: '👤', label: 'Profile' },
             { id: 'settings', icon: '⚙️', label: 'Settings' }
@@ -83,9 +99,10 @@ const PortalShell: React.FC = () => {
           links: [
             { id: 'dashboard', icon: '🏠', label: 'Dashboard' },
             { id: 'approvals', icon: '🛡️', label: 'Job Approvals' },
-            { id: 'verification', icon: '🏢', label: 'Employer Verification' },
+            { id: 'verification', icon: '🏢', label: 'Employer Profiles' },
             { id: 'compliance', icon: '📋', label: 'Compliance Matrix' },
             { id: 'liaison', icon: '🌐', label: 'Liaison Flags' },
+            { id: 'collaboration', icon: '🤝', label: 'Oversight & Collaboration' },
             { id: 'reports', icon: '📊', label: 'Reports & Analytics' },
             { id: 'settings', icon: '⚙️', label: 'Settings' }
           ]
@@ -130,19 +147,19 @@ const PortalShell: React.FC = () => {
             <span className="header-dropdown-arrow">▼</span>
           </div>
 
-          <button 
-            className="btn btn-secondary" 
-            style={{ 
-              padding: '6px 12px', 
-              fontSize: '12px', 
-              display: 'flex', 
-              alignItems: 'center', 
+          <button
+            className="btn btn-secondary"
+            style={{
+              padding: '6px 12px',
+              fontSize: '12px',
+              display: 'flex',
+              alignItems: 'center',
               gap: '6px',
               borderRadius: '8px',
               cursor: 'pointer',
               marginLeft: '12px',
               height: '36px'
-            }} 
+            }}
             onClick={logout}
           >
             <span>🚪</span>
@@ -205,7 +222,7 @@ const PortalShell: React.FC = () => {
                 </div>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
                   <span style={{ fontSize: '13px', color: 'var(--color-text-muted)', fontWeight: 600 }}>Mobile Layout Preview:</span>
-                  <button 
+                  <button
                     className={`btn ${mobilePreview ? 'btn-primary' : 'btn-secondary'}`}
                     style={{ padding: '4px 12px', fontSize: '11px', borderRadius: '12px' }}
                     onClick={() => setMobilePreview(!mobilePreview)}
@@ -214,7 +231,7 @@ const PortalShell: React.FC = () => {
                   </button>
                 </div>
               </div>
-              
+
               <MobileFrame active={mobilePreview} onToggle={setMobilePreview}>
                 <StudentPortal />
               </MobileFrame>

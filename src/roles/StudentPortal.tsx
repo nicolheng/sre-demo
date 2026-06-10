@@ -906,12 +906,12 @@ export const StudentPortal: React.FC = () => {
                       {/* Assessments Grid */}
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '20px' }}>
                         {/* 1. Written Screening Assessment */}
-                        <div style={{ 
-                          border: '1px solid var(--color-border)', 
-                          borderRadius: '10px', 
-                          padding: '16px 20px', 
-                          display: 'flex', 
-                          flexDirection: 'column', 
+                        <div style={{
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '10px',
+                          padding: '16px 20px',
+                          display: 'flex',
+                          flexDirection: 'column',
                           justifyContent: 'space-between',
                           backgroundColor: 'var(--bg-app)',
                           transition: 'all 0.2s ease'
@@ -934,8 +934,8 @@ export const StudentPortal: React.FC = () => {
                           <div style={{ marginTop: '16px' }}>
                             {hasScreeningAnswers ? (
                               <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
-                                <button 
-                                  className="btn btn-secondary" 
+                                <button
+                                  className="btn btn-secondary"
                                   style={{ width: '100%', padding: '6px 12px', fontSize: '12px' }}
                                   onClick={() => setExpandedAppAnswers(prev => ({ ...prev, [app.id]: !prev[app.id] }))}
                                 >
@@ -944,11 +944,11 @@ export const StudentPortal: React.FC = () => {
 
                                 {/* Screening answers dropdown */}
                                 {expandedAppAnswers[app.id] && (
-                                  <div style={{ 
-                                    marginTop: '8px', 
-                                    padding: '12px', 
-                                    backgroundColor: 'var(--bg-card)', 
-                                    borderRadius: '6px', 
+                                  <div style={{
+                                    marginTop: '8px',
+                                    padding: '12px',
+                                    backgroundColor: 'var(--bg-card)',
+                                    borderRadius: '6px',
                                     border: '1px solid var(--color-border)',
                                     maxHeight: '200px',
                                     overflowY: 'auto',
@@ -967,8 +967,8 @@ export const StudentPortal: React.FC = () => {
                                 )}
                               </div>
                             ) : (
-                              <button 
-                                className="btn btn-primary" 
+                              <button
+                                className="btn btn-primary"
                                 style={{ width: '100%', padding: '6px 12px', fontSize: '12px' }}
                                 onClick={() => {
                                   setSelectedAppId(app.id);
@@ -982,12 +982,12 @@ export const StudentPortal: React.FC = () => {
                         </div>
 
                         {/* 2. Video Pitch / Intro Interview */}
-                        <div style={{ 
-                          border: '1px solid var(--color-border)', 
-                          borderRadius: '10px', 
-                          padding: '16px 20px', 
-                          display: 'flex', 
-                          flexDirection: 'column', 
+                        <div style={{
+                          border: '1px solid var(--color-border)',
+                          borderRadius: '10px',
+                          padding: '16px 20px',
+                          display: 'flex',
+                          flexDirection: 'column',
                           justifyContent: 'space-between',
                           backgroundColor: 'var(--bg-app)',
                           transition: 'all 0.2s ease'
@@ -1009,16 +1009,16 @@ export const StudentPortal: React.FC = () => {
 
                           <div style={{ marginTop: '16px' }}>
                             {hasVideoUrl ? (
-                              <button 
-                                className="btn btn-secondary" 
+                              <button
+                                className="btn btn-secondary"
                                 style={{ width: '100%', padding: '6px 12px', fontSize: '12px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px' }}
                                 onClick={() => setVideoPreviewUrl(app.videoResponseUrl || null)}
                               >
                                 📺 Watch Submitted Pitch
                               </button>
                             ) : (
-                              <button 
-                                className="btn btn-primary" 
+                              <button
+                                className="btn btn-primary"
                                 style={{ width: '100%', padding: '6px 12px', fontSize: '12px' }}
                                 onClick={() => {
                                   setSelectedAppId(app.id);
@@ -1111,7 +1111,7 @@ export const StudentPortal: React.FC = () => {
                               </span>
                             )}
                           </div>
-                          
+
                           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontSize: '11px', color: 'var(--color-text-muted)' }}>
                             <span>Position: {jobs.find(j => j.id === comp.jobId)?.title || 'Internship'}</span>
                             {!isInvited && (
@@ -1130,10 +1130,10 @@ export const StudentPortal: React.FC = () => {
                 <h4 style={{ fontSize: '14px', fontWeight: 600, marginBottom: '12px' }}>🔒 Booked Appointments</h4>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                   {interviewSlots.filter(slot => slot.bookedBy === studentId).map(slot => (
-                    <div key={slot.id} style={{ 
-                      border: '1px solid var(--status-offered)', 
-                      backgroundColor: 'hsl(142, 76%, 97%)', 
-                      padding: '10px 14px', 
+                    <div key={slot.id} style={{
+                      border: '1px solid var(--status-offered)',
+                      backgroundColor: 'hsl(142, 76%, 97%)',
+                      padding: '10px 14px',
                       borderRadius: '8px',
                       display: 'flex',
                       justifyContent: 'space-between',
@@ -1182,7 +1182,7 @@ export const StudentPortal: React.FC = () => {
 
                     // Check if student has booking on this day
                     const hasUserBooking = interviewSlots.some(s => s.date === dateStr && s.bookedBy === studentId);
-                    
+
                     // Check if selected company has slots on this day
                     const activeJob = jobs.find(j => j.companyId === selectedInterviewCompanyId);
                     const hasCompanySlots = interviewSlots.some(s => s.date === dateStr && !s.bookedBy && s.jobId === activeJob?.id);
@@ -1244,9 +1244,9 @@ export const StudentPortal: React.FC = () => {
 
                     const activeJob = jobs.find(j => j.companyId === selectedInterviewCompanyId);
                     const companyName = activeJob?.companyName || 'Selected Company';
-                    
+
                     const daySlots = interviewSlots.filter(s => s.date === selectedCalendarDate && s.jobId === activeJob?.id);
-                    
+
                     const studentBooking = interviewSlots.find(s => s.date === selectedCalendarDate && s.bookedBy === studentId);
 
                     const app = applications.find(a => a.studentId === studentId && a.jobId === activeJob?.id);
@@ -1264,13 +1264,13 @@ export const StudentPortal: React.FC = () => {
                         {/* List slots */}
                         <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
                           {studentBooking && (
-                            <div style={{ 
-                              border: '1px solid var(--status-offered)', 
-                              backgroundColor: 'hsl(142, 76%, 97%)', 
-                              padding: '12px', 
-                              borderRadius: '8px', 
-                              display: 'flex', 
-                              justifyContent: 'space-between', 
+                            <div style={{
+                              border: '1px solid var(--status-offered)',
+                              backgroundColor: 'hsl(142, 76%, 97%)',
+                              padding: '12px',
+                              borderRadius: '8px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
                               alignItems: 'center'
                             }}>
                               <div>
@@ -1283,12 +1283,12 @@ export const StudentPortal: React.FC = () => {
                           )}
 
                           {daySlots.filter(s => !s.bookedBy).map(slot => (
-                            <div key={slot.id} style={{ 
-                              border: '1px solid var(--color-border)', 
-                              padding: '12px', 
-                              borderRadius: '8px', 
-                              display: 'flex', 
-                              justifyContent: 'space-between', 
+                            <div key={slot.id} style={{
+                              border: '1px solid var(--color-border)',
+                              padding: '12px',
+                              borderRadius: '8px',
+                              display: 'flex',
+                              justifyContent: 'space-between',
                               alignItems: 'center',
                               backgroundColor: 'var(--bg-card)'
                             }}>
@@ -1296,7 +1296,7 @@ export const StudentPortal: React.FC = () => {
                                 <h5 style={{ fontSize: '14px', fontWeight: 600, margin: 0 }}>{slot.time}</h5>
                                 <p style={{ fontSize: '11px', color: 'var(--color-text-muted)', margin: '2px 0 0 0' }}>Available timeslot</p>
                               </div>
-                              
+
                               {isInvited ? (
                                 <button
                                   className="btn btn-primary"
@@ -1909,25 +1909,25 @@ export const StudentPortal: React.FC = () => {
       {/* 11. SETTINGS SUBPAGE */}
       {activeSubpage === 'settings' && (
         <div style={{ display: 'grid', gridTemplateColumns: '1.2fr 1fr', gap: '24px', width: '100%', alignItems: 'start' }}>
-          
+
           {/* Notification and Preferences */}
           <div className="dashboard-card" style={{ margin: 0, padding: '24px' }}>
             <h3 style={{ fontSize: '18px', marginBottom: '16px', fontWeight: 700 }}>⚙️ Portal Preferences & Notifications</h3>
             <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
               Configure how you receive updates regarding job matching, interview schedules, and weekly logbook submission statuses.
             </p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '1px solid var(--color-border)', paddingBottom: '12px' }}>
                 <div>
                   <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Email Notifications</h4>
                   <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Receive email alerts when employers message you or request interviews.</p>
                 </div>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  checked={notifyEmail} 
-                  onChange={e => setNotifyEmail(e.target.checked)} 
+                  checked={notifyEmail}
+                  onChange={e => setNotifyEmail(e.target.checked)}
                 />
               </div>
 
@@ -1936,11 +1936,11 @@ export const StudentPortal: React.FC = () => {
                   <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Push Web Alerts</h4>
                   <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Show desktop push notifications for urgent application approvals or portal announcements.</p>
                 </div>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  checked={notifyPush} 
-                  onChange={e => setNotifyPush(e.target.checked)} 
+                  checked={notifyPush}
+                  onChange={e => setNotifyPush(e.target.checked)}
                 />
               </div>
 
@@ -1949,11 +1949,11 @@ export const StudentPortal: React.FC = () => {
                   <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Automated Logbook Reminders</h4>
                   <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Send auto-alerts to submit your weekly progress on Fridays if pending.</p>
                 </div>
-                <input 
-                  type="checkbox" 
+                <input
+                  type="checkbox"
                   style={{ width: '18px', height: '18px', cursor: 'pointer' }}
-                  checked={autoRemind} 
-                  onChange={e => setAutoRemind(e.target.checked)} 
+                  checked={autoRemind}
+                  onChange={e => setAutoRemind(e.target.checked)}
                 />
               </div>
 
@@ -1962,7 +1962,7 @@ export const StudentPortal: React.FC = () => {
                   <h4 style={{ fontSize: '13.5px', fontWeight: 700, margin: '0 0 4px 0' }}>Calendar Sync Integration</h4>
                   <p style={{ fontSize: '11.5px', color: 'var(--color-text-muted)', margin: 0 }}>Sync booked employer interviews and matching sessions to Google Calendar.</p>
                 </div>
-                <button 
+                <button
                   className={`btn ${calendarSync ? 'btn-primary' : 'btn-secondary'}`}
                   style={{ padding: '6px 14px', fontSize: '11px', borderRadius: '6px' }}
                   onClick={() => setCalendarSync(!calendarSync)}
@@ -1972,12 +1972,12 @@ export const StudentPortal: React.FC = () => {
               </div>
             </div>
 
-            <button 
-              className="btn btn-primary" 
-              onClick={() => { 
-                setSettingsToast(true); 
-                setTimeout(() => setSettingsToast(false), 3000); 
-              }} 
+            <button
+              className="btn btn-primary"
+              onClick={() => {
+                setSettingsToast(true);
+                setTimeout(() => setSettingsToast(false), 3000);
+              }}
               style={{ width: '100%', marginTop: '24px' }}
             >
               Save Preferences
@@ -1995,46 +1995,46 @@ export const StudentPortal: React.FC = () => {
             <p style={{ fontSize: '12px', color: 'var(--color-text-muted)', marginBottom: '20px' }}>
               Change your password to maintain account integrity.
             </p>
-            
+
             <div style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}>
               <div className="form-group">
                 <span className="form-label" style={{ fontSize: '11px' }}>Current Password:</span>
-                <input 
-                  type="password" 
-                  className="form-input" 
-                  value={currentPassword} 
-                  onChange={e => setCurrentPassword(e.target.value)} 
-                  placeholder="••••••••" 
+                <input
+                  type="password"
+                  className="form-input"
+                  value={currentPassword}
+                  onChange={e => setCurrentPassword(e.target.value)}
+                  placeholder="••••••••"
                   style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
                 />
               </div>
 
               <div className="form-group">
                 <span className="form-label" style={{ fontSize: '11px' }}>New Password:</span>
-                <input 
-                  type="password" 
-                  className="form-input" 
-                  value={newPassword} 
-                  onChange={e => setNewPassword(e.target.value)} 
-                  placeholder="••••••••" 
+                <input
+                  type="password"
+                  className="form-input"
+                  value={newPassword}
+                  onChange={e => setNewPassword(e.target.value)}
+                  placeholder="••••••••"
                   style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
                 />
               </div>
 
               <div className="form-group">
                 <span className="form-label" style={{ fontSize: '11px' }}>Confirm New Password:</span>
-                <input 
-                  type="password" 
-                  className="form-input" 
-                  value={confirmPassword} 
-                  onChange={e => setConfirmPassword(e.target.value)} 
-                  placeholder="••••••••" 
+                <input
+                  type="password"
+                  className="form-input"
+                  value={confirmPassword}
+                  onChange={e => setConfirmPassword(e.target.value)}
+                  placeholder="••••••••"
                   style={{ height: '32px', padding: '6px 10px', fontSize: '12px' }}
                 />
               </div>
 
-              <button 
-                className="btn btn-secondary" 
+              <button
+                className="btn btn-secondary"
                 onClick={() => {
                   if (!currentPassword || !newPassword || !confirmPassword) {
                     alert("Please fill in all password fields.");
@@ -2160,11 +2160,11 @@ export const StudentPortal: React.FC = () => {
             </div>
 
             {/* Resume Selection Section */}
-            <div className="form-group" style={{ 
-              border: '1px solid var(--color-border)', 
-              borderRadius: '10px', 
-              padding: '16px', 
-              backgroundColor: 'var(--bg-app)', 
+            <div className="form-group" style={{
+              border: '1px solid var(--color-border)',
+              borderRadius: '10px',
+              padding: '16px',
+              backgroundColor: 'var(--bg-app)',
               marginBottom: '20px',
               display: 'flex',
               flexDirection: 'column',
@@ -2173,14 +2173,14 @@ export const StudentPortal: React.FC = () => {
               <span className="form-label" style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text-main)', fontSize: '14px' }}>
                 📄 Resume / CV Selection
               </span>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* Radio 1: Use default */}
-                <label style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  cursor: 'pointer', 
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
                   fontSize: '13px',
                   padding: '8px 12px',
                   borderRadius: '6px',
@@ -2210,11 +2210,11 @@ export const StudentPortal: React.FC = () => {
                 </label>
 
                 {/* Radio 2: Custom resume */}
-                <label style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  cursor: 'pointer', 
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
                   fontSize: '13px',
                   padding: '8px 12px',
                   borderRadius: '6px',
@@ -2236,9 +2236,9 @@ export const StudentPortal: React.FC = () => {
 
                 {/* Custom input fields container */}
                 {!useDefaultResume && (
-                  <div style={{ 
-                    marginLeft: '8px', 
-                    padding: '12px', 
+                  <div style={{
+                    marginLeft: '8px',
+                    padding: '12px',
                     borderLeft: '3px solid var(--color-primary)',
                     backgroundColor: 'var(--bg-card)',
                     borderRadius: '0 8px 8px 0',
@@ -2258,7 +2258,7 @@ export const StudentPortal: React.FC = () => {
                         onChange={e => setCustomResumeName(e.target.value)}
                       />
                     </div>
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                       <input
                         type="file"
@@ -2279,7 +2279,7 @@ export const StudentPortal: React.FC = () => {
                       >
                         Browse File...
                       </button>
-                      
+
                       <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer', color: 'var(--color-text-main)' }}>
                         <input
                           type="checkbox"
@@ -2301,11 +2301,11 @@ export const StudentPortal: React.FC = () => {
               </div>
             ))}
             {/* Video Pitch Selection Section */}
-            <div className="form-group" style={{ 
-              border: '1px solid var(--color-border)', 
-              borderRadius: '10px', 
-              padding: '16px', 
-              backgroundColor: 'var(--bg-app)', 
+            <div className="form-group" style={{
+              border: '1px solid var(--color-border)',
+              borderRadius: '10px',
+              padding: '16px',
+              backgroundColor: 'var(--bg-app)',
               marginBottom: '20px',
               display: 'flex',
               flexDirection: 'column',
@@ -2314,14 +2314,14 @@ export const StudentPortal: React.FC = () => {
               <span className="form-label" style={{ fontWeight: 700, display: 'flex', alignItems: 'center', gap: '8px', color: 'var(--color-text-main)', fontSize: '14px' }}>
                 🎥 Video Pitch Selection
               </span>
-              
+
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 {/* Radio 1: Use default */}
-                <label style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  cursor: 'pointer', 
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
                   fontSize: '13px',
                   padding: '8px 12px',
                   borderRadius: '6px',
@@ -2351,11 +2351,11 @@ export const StudentPortal: React.FC = () => {
                 </label>
 
                 {/* Radio 2: Custom video */}
-                <label style={{ 
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '10px', 
-                  cursor: 'pointer', 
+                <label style={{
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: '10px',
+                  cursor: 'pointer',
                   fontSize: '13px',
                   padding: '8px 12px',
                   borderRadius: '6px',
@@ -2377,9 +2377,9 @@ export const StudentPortal: React.FC = () => {
 
                 {/* Custom input fields container */}
                 {!useDefaultVideo && (
-                  <div style={{ 
-                    marginLeft: '8px', 
-                    padding: '12px', 
+                  <div style={{
+                    marginLeft: '8px',
+                    padding: '12px',
                     borderLeft: '3px solid var(--color-primary)',
                     backgroundColor: 'var(--bg-card)',
                     borderRadius: '0 8px 8px 0',
@@ -2399,7 +2399,7 @@ export const StudentPortal: React.FC = () => {
                         onChange={e => setCustomVideoUrl(e.target.value)}
                       />
                     </div>
-                    
+
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '8px' }}>
                       <input
                         type="file"
@@ -2420,7 +2420,7 @@ export const StudentPortal: React.FC = () => {
                       >
                         Browse MP4...
                       </button>
-                      
+
                       <label style={{ display: 'flex', alignItems: 'center', gap: '6px', fontSize: '11px', cursor: 'pointer', color: 'var(--color-text-main)' }}>
                         <input
                           type="checkbox"
